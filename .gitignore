@@ -1,15 +1,39 @@
+# Build output
+/build/
+/app/build/
+/generated/
+
+# Gradle
+.gradle/
+gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+
+# Local config (API keys, SDK path)
 local.properties
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Captures
+/captures/
+
+# Native build
+.externalNativeBuild/
+.cxx/
+
+# Android Studio backup
+backup_rules.xml
+data_extraction_rules.xml
+
+# Proguard
+proguard-rules.pro
+
+# Logs
+*.log
+
+# KSP generated (just in case)
+**/build/generated/
