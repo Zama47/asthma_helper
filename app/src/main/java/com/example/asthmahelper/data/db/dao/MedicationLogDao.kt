@@ -31,6 +31,14 @@ interface MedicationLogDao {
     )
     suspend fun getLogForScheduleAndDate(scheduleId: Long, date: Long): MedicationLogEntity?
 
+    /** Реактивный вариант: эмитит заново при любом изменении таблицы логов. */
+    @Query(
+        "SELECT * FROM medication_logs " +
+            "WHERE scheduleId = :scheduleId AND date = :date " +
+            "LIMIT 1"
+    )
+    fun getLogForScheduleAndDateFlow(scheduleId: Long, date: Long): Flow<MedicationLogEntity?>
+
     @Query("SELECT * FROM medication_logs WHERE scheduleId = :scheduleId ORDER BY date")
     fun getLogsForSchedule(scheduleId: Long): Flow<List<MedicationLogEntity>>
 

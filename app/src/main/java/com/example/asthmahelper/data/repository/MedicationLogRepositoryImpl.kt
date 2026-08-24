@@ -22,6 +22,10 @@ class MedicationLogRepositoryImpl @Inject constructor(
         return dao.getLogForScheduleAndDate(scheduleId, date)?.toDomain()
     }
 
+    override fun getLogForScheduleAndDateFlow(scheduleId: Long, date: Long): Flow<MedicationLog?> {
+        return dao.getLogForScheduleAndDateFlow(scheduleId, date).map { it?.toDomain() }
+    }
+
     override fun getLogsForSchedule(scheduleId: Long): Flow<List<MedicationLog>> {
         return dao.getLogsForSchedule(scheduleId).map { entities ->
             entities.map { it.toDomain() }

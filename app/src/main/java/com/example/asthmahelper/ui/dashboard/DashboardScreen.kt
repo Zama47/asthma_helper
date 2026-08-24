@@ -38,6 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.asthmahelper.R
+import com.example.asthmahelper.domain.model.AirQualityLevel
+import com.example.asthmahelper.domain.model.PollenLevel
 import com.example.asthmahelper.ui.components.AddMeasurementDialog
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -51,6 +53,7 @@ fun DashboardScreen(navController: androidx.navigation.NavController) {
     val measurements by viewModel.recentMeasurements.collectAsState()
     val norm by viewModel.breathingNorm.collectAsState()
     val todayMedications by viewModel.todayMedications.collectAsState()
+    val weatherData by viewModel.weatherData.collectAsState()
 
     Column(
         modifier = Modifier
@@ -74,19 +77,19 @@ fun DashboardScreen(navController: androidx.navigation.NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Виджеты: аллергия + воздух
+        // Виджеты: аллергия + воздух (реальные данные из API)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             AllergyLevelWidget(
-                level = "Средний",
-                color = Color(0xFFFFC107),
+                level = weatherData.pollen?.level?.label ?: "Нет данных",
+                color = pollenColor(weatherData.pollen?.level ?: PollenLevel.NONE),
                 modifier = Modifier.weight(1f)
             )
             AirQualityWidget(
-                aqi = 25,
-                description = "Удовлетворительное",
+                aqi = weatherData.airQuality?.aqi ?: 0,
+                description = weatherData.airQuality?.level?.label ?: "Нет данных",
                 modifier = Modifier.weight(1f)
             )
         }
@@ -228,6 +231,14 @@ private fun color(
     if (norm == null) return Color(0xFF9E9E9E)
     return if (value < norm.minNormal || value > norm.maxNormal) Color(0xFFF44336)
     else Color(0xFF4CAF50)
+}
+
+@Composable
+private fun pollenColor(level: PollenLevel): Color = when (level) {
+    PollenLevel.NONE -> Color(0xFF9E9E9E)
+    PollenLevel.LOW -> Color(0xFF4CAF50)
+    PollenLevel.MEDIUM -> Color(0xFFFFC107)
+    PollenLevel.HIGH -> Color(0xFFF44336)
 }
 
 @Composable

@@ -35,4 +35,7 @@ interface MedicineDao {
 
     @Query("SELECT * FROM medicines WHERE id = :id")
     suspend fun getMedicineById(id: Long): MedicineEntity?
+
+    @Query("SELECT COUNT(*) FROM medicines WHERE isPopular = 1")
+    suspend fun getPopularCount(): Int
 }

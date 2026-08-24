@@ -46,6 +46,24 @@ class BreathingViewModel @Inject constructor(
         }
     }
 
+    /** Добавляет замер на конкретную дату/время. */
+    fun addMeasurement(value: Float, timestamp: Long, note: String?) {
+        viewModelScope.launch {
+            try {
+                require(value > 0f) { "Значение замера должно быть положительным" }
+                dutyMeasurementRepository.insertMeasurement(
+                    DutyMeasurement(
+                        value = value,
+                        timestamp = timestamp,
+                        note = note?.takeIf { it.isNotBlank() }
+                    )
+                )
+            } catch (e: IllegalArgumentException) {
+                // Валидация на стороне UI
+            }
+        }
+    }
+
     fun deleteMeasurement(measurement: DutyMeasurement) {
         viewModelScope.launch {
             dutyMeasurementRepository.deleteMeasurement(measurement)

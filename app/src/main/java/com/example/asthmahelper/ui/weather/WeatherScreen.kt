@@ -1,5 +1,7 @@
 package com.example.asthmahelper.ui.weather
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,8 +40,27 @@ fun WeatherScreen(navController: androidx.navigation.NavController) {
     val viewModel: WeatherViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(Unit) {
+    // Запрос разрешения на геолокацию (Android 6.0+)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { grants ->
+        // После ответа пользователя перезагружаем данные (с геолокацией или без)
         viewModel.loadWeatherData()
+    }
+
+    LaunchedEffect(Unit) {
+        if (viewModel.hasLocationPermission()) {
+            viewModel.loadWeatherData()
+        } else {
+            // Сначала загружаем по умолчанию (Москва), параллельно просим разрешение
+            viewModel.loadWeatherData(useLocation = false)
+            permissionLauncher.launch(
+                arrayOf(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
     }
 
     Column(
@@ -195,6 +216,7 @@ private fun RecommendationsBlock(state: WeatherUiState) {
             add("Сухо и ветрено — пыльца разносится активно, ограничьте прогулки.")
         }
         if (isEmpty()) {
+            // Данные есть и все в норме — только тогда даём позитивную рекомендацию
             add("Показатели в норме — хороший день для прогулок на свежем воздухе!")
         }
     }
@@ -206,8 +228,16 @@ private fun RecommendationsBlock(state: WeatherUiState) {
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
-            recommendations.forEach {
-                Text("• $it", style = MaterialTheme.typography.bodyMedium)
+            if (air == null && pollen == null) {
+                // Нет данных ни по воздуху, ни по пыльце — не вводим в заблуждение
+                Text(
+                    "Данные о воздухе и пыльце недоступны для вашего региона.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                recommendations.forEach {
+                    Text("• $it", style = MaterialTheme.typography.bodyMedium)
+                }
             }
         }
     }
