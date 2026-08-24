@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">asthma helper</string>
+    <string name="dashboard">Главная</string>
+    <string name="breathing">Дыхание</string>
+    <string name="medications">Лекарства</string>
+    <string name="weather">Погода</string>
+    <string name="add_measurement">Добавить замер</string>
+    <string name="measurement_value">Значение (л/мин)</string>
+    <string name="measurement_note">Примечание</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="breathing_history">История дыхания</string>
+    <string name="medication_schedule">Расписание лекарств</string>
+    <string name="air_quality">Качество воздуха</string>
+    <string name="allergy_level">Уровень аллергии</string>
+</resources>
