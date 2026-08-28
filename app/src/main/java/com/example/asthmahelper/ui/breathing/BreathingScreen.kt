@@ -134,6 +134,8 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
 
         BreathingChart(
             measurements = filtered.map { it.timestamp to it.value },
+            norm = norm,
+            onNormChanged = { newNorm -> viewModel.setBreathingNorm(newNorm) },
             modifier = Modifier.fillMaxWidth()
         )
 

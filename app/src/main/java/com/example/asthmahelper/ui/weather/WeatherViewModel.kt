@@ -9,6 +9,7 @@ import com.example.asthmahelper.domain.model.PollenInfo
 import com.example.asthmahelper.domain.model.Plant
 import com.example.asthmahelper.domain.model.PollenLevel
 import com.example.asthmahelper.domain.model.WeatherInfo
+import com.example.asthmahelper.util.GeoPoint
 import com.example.asthmahelper.util.LocationProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 data class WeatherUiState(
@@ -55,14 +57,13 @@ class WeatherViewModel @Inject constructor(
             try {
                 // Пытаемся получить реальные координаты
                 if (useLocation && locationProvider.hasPermission()) {
-                    try {
-                        locationProvider.locationFlow().firstOrNull()?.let { point ->
-                            lat = point.lat
-                            lon = point.lon
-                            _uiState.value = _uiState.value.copy(isUsingRealLocation = true)
-                        }
-                    } catch (_: Exception) {
-                        // Геолокация не сработала — остаёмся на координатах по умолчанию
+                    val geoPoint = withTimeoutOrNull(10_000) {
+                        locationProvider.getCurrentLocation()
+                    }
+                    geoPoint?.let { point: GeoPoint ->
+                        lat = point.lat
+                        lon = point.lon
+                        _uiState.value = _uiState.value.copy(isUsingRealLocation = true)
                     }
                 }
 

@@ -46,6 +46,17 @@ class BreathingViewModel @Inject constructor(
         }
     }
 
+    fun setBreathingNorm(norm: BreathingNorm) {
+        viewModelScope.launch {
+            try {
+                setBreathingNormUseCase(norm.minNormal, norm.maxNormal, norm.formulaType)
+                _breathingNorm.value = norm
+            } catch (e: IllegalArgumentException) {
+                // Некорректный ввод — игнорируем (UI должен валидировать)
+            }
+        }
+    }
+
     /** Добавляет замер на конкретную дату/время. */
     fun addMeasurement(value: Float, timestamp: Long, note: String?) {
         viewModelScope.launch {

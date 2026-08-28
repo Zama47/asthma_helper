@@ -10,9 +10,10 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.resume
 
 data class GeoPoint(
     val lat: Double,
@@ -21,7 +22,10 @@ data class GeoPoint(
 
 /**
  * Провайдер геолокации через FusedLocationProviderClient (Google Play Services).
- * Возвращает Flow с последним известным местоположением.
+ *
+ * Ключевая особенность: [getCurrentLocation] ВСЕГДА завершается за конечное время —
+ * сначала мгновенно пробует последнее известное местоположение, затем запрашивает
+ * свежее обновление; при таймауте (5 сек) возвращает null вместо бесконечного ожидания.
  */
 class LocationProvider(private val context: Context) {
 
@@ -37,35 +41,56 @@ class LocationProvider(private val context: Context) {
             PackageManager.PERMISSION_GRANTED
 
     /**
-     * Поток координат. Эмитит последнее известное местоположение,
-     * затем обновления (одного достаточно — отписываемся после первого).
+     * Текущие координаты или null, если получить не удалось за [timeoutMs].
+     * Стратегия: lastLocation (мгновенно) → свежий запрос → таймаут → null.
      */
-    fun locationFlow(): Flow<GeoPoint> = callbackFlow {
-        if (!hasPermission()) {
-            close(SecurityException("Нет разрешения ACCESS_FINE_LOCATION"))
-            return@callbackFlow
+    suspend fun getCurrentLocation(timeoutMs: Long = 5_000L): GeoPoint? {
+        if (!hasPermission()) return null
+        return withTimeoutOrNull(timeoutMs) {
+            suspendCancellableCoroutine { cont ->
+                try {
+                    client.lastLocation
+                        .addOnSuccessListener { location ->
+                            if (location != null) {
+                                cont.resumeSafely(GeoPoint(location.latitude, location.longitude))
+                            } else {
+                                requestFreshLocation(cont)
+                            }
+                        }
+                        .addOnFailureListener {
+                            requestFreshLocation(cont)
+                        }
+                } catch (e: SecurityException) {
+                    cont.resumeSafely(null)
+                }
+            }
         }
+    }
 
-        val request = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 60_000L)
-            .setMinUpdateIntervalMillis(30_000L)
-            .setMaxUpdates(1) // достаточно одного обновления
+    /** Запрашивает одно свежее обновление локации. */
+    private fun requestFreshLocation(cont: CancellableContinuation<GeoPoint?>) {
+        val request = LocationRequest.Builder(Priority.PRIORITY_LOW_POWER, 10_000L)
+            .setWaitForAccurateLocation(false)
+            .setMaxUpdates(1)
             .build()
 
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
-                result.lastLocation?.let { location ->
-                    trySend(GeoPoint(location.latitude, location.longitude))
-                    close() // получили координаты — закрываем поток
-                }
+                client.removeLocationUpdates(this)
+                val location = result.lastLocation
+                cont.resumeSafely(location?.let { GeoPoint(it.latitude, it.longitude) })
             }
         }
 
         try {
             client.requestLocationUpdates(request, callback, Looper.getMainLooper())
         } catch (e: SecurityException) {
-            close(e)
+            cont.resumeSafely(null)
         }
+    }
 
-        awaitClose { client.removeLocationUpdates(callback) }
+    /** resume, безопасный при отмене (таймаут) — не бросает исключение при повторном вызове. */
+    private fun CancellableContinuation<GeoPoint?>.resumeSafely(value: GeoPoint?) {
+        if (isActive) resume(value)
     }
 }
