@@ -221,6 +221,17 @@ private fun ChartContainer(
                         strokeWidth = 2f
                     )
 
+                    // Отрисовка дополнительных линий (100, 200, 400, 500)
+                    listOf(100f, 200f, 400f, 500f).forEach { value ->
+                        val yPos = size.height * (1 - (value - minDisplayValue) / displayRange)
+                        drawLine(
+                            color = Color.Gray,
+                            start = Offset(0f, yPos),
+                            end = Offset(size.width, yPos),
+                            strokeWidth = 1f
+                        )
+                    }
+
                     // Отрисовка данных
                     if (measurements.isNotEmpty()) {
                         val step = size.width / (measurements.size - 1)
@@ -236,7 +247,23 @@ private fun ChartContainer(
                                 end = Offset(endX, endY),
                                 strokeWidth = 2f
                             )
+
+                            // Добавление точек для каждого измерения
+                            drawCircle(
+                                color = Color.Blue,
+                                radius = 4f,
+                                center = Offset(startX, startY)
+                            )
                         }
+
+                        // Добавление последней точки
+                        val lastX = (measurements.size - 1) * step
+                        val lastY = size.height * (1 - (measurements.last().second - minDisplayValue) / displayRange)
+                        drawCircle(
+                            color = Color.Blue,
+                            radius = 4f,
+                            center = Offset(lastX, lastY)
+                        )
                     }
 
                     // Отметки на оси Y (0, 300, 600)
@@ -250,8 +277,6 @@ private fun ChartContainer(
                         )
                     }
                 }
-
-
             }
         }
     }
