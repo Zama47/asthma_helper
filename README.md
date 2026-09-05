@@ -160,5 +160,5 @@ graph TD
 **Замышляев Антон Денисович**  
 
 📧 [zama_47@outlook.com](mailto:zama_47@outlook.com)  
-📱 [Telegram @Zamaa_47](https://t.me/Zamaa_47)  
+📱 [Telegram @Zamaa47](https://t.me/Zamaa47)  
 🐙 [GitHub Zama47](https://github.com/Zama47) 
