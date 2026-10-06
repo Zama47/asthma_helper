@@ -13,11 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -25,14 +24,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.asthmahelper.domain.model.BreathingNorm
+import kotlin.math.ceil
+import kotlin.math.max
 
 @Composable
 fun BreathingChartWidget(
@@ -42,20 +41,18 @@ fun BreathingChartWidget(
     defaultNorm: BreathingNorm = BreathingNorm(350f, 450f, 200),
     onNormChanged: (BreathingNorm) -> Unit
 ) {
-    var currentNorm by remember { mutableStateOf(norm ?: defaultNorm) }
+    var currentNorm by remember(norm) { mutableStateOf(norm ?: defaultNorm) }
     var showConfigDialog by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-    ) {
-        // Кнопка в начале без отступов
+    Column(modifier = modifier) {
         Button(
             onClick = { showConfigDialog = true },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Настроить нормы")
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         ChartContainer(
             modifier = Modifier.fillMaxWidth(),
@@ -64,7 +61,6 @@ fun BreathingChartWidget(
         )
     }
 
-    // Диалоговое окно для настройки норм
     if (showConfigDialog) {
         NormConfigDialog(
             norm = currentNorm,
@@ -141,140 +137,134 @@ private fun ChartContainer(
     measurements: List<Pair<Long, Float>>,
     norm: BreathingNorm
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    val containerColor = colorScheme.surfaceContainerHighest
+    val axisColor = colorScheme.onSurfaceVariant
+    val gridColor = colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+    val dataColor = colorScheme.primary
+    val labelStyle = MaterialTheme.typography.labelSmall
+
+    val dataMax = measurements.maxOfOrNull { it.second } ?: 0f
+    val maxY = ceil(max(600f, max(norm.maxNormal, dataMax)) / 100f) * 100f
+    val midY = maxY / 2f
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(300.dp)
-            .background(Color.LightGray, RoundedCornerShape(16.dp))
+            .background(containerColor, RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Цифры на оси Y (0, 300, 600) у левого края виджета
+        Row(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
-                    .width(30.dp)
+                    .width(34.dp)
                     .fillMaxHeight(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "600",
-                    fontSize = 12.sp
-                )
-                Text(
-                    text = "300",
-                    fontSize = 12.sp
-                )
-                Text(
-                    text = "0",
-                    fontSize = 12.sp
-                )
+                Text(text = "${maxY.toInt()}", style = labelStyle, color = axisColor)
+                Text(text = "${midY.toInt()}", style = labelStyle, color = axisColor)
+                Text(text = "0", style = labelStyle, color = axisColor)
             }
 
-            // Линия оси Y
             Canvas(
                 modifier = Modifier
                     .width(1.dp)
                     .fillMaxHeight()
             ) {
                 drawLine(
-                    color = Color.Black,
+                    color = axisColor,
                     start = Offset(0f, 0f),
                     end = Offset(0f, size.height),
                     strokeWidth = 1f
                 )
             }
 
-            // Основной график
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
             ) {
-                Canvas(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    val maxDisplayValue = 600f
+                Canvas(modifier = Modifier.fillMaxSize()) {
                     val minDisplayValue = 0f
-                    val displayRange = maxDisplayValue - minDisplayValue
+                    val displayRange = maxY - minDisplayValue
 
-                    // Отрисовка линий норм
-                    drawLine(
-                        color = Color.Green,
-                        start = Offset(0f, size.height * (1 - (norm.maxNormal - minDisplayValue) / displayRange)),
-                        end = Offset(size.width, size.height * (1 - (norm.maxNormal - minDisplayValue) / displayRange)),
-                        strokeWidth = 2f
-                    )
+                    fun yFor(value: Float): Float =
+                        size.height * (1 - (value - minDisplayValue) / displayRange)
 
-                    drawLine(
-                        color = Color.Yellow,
-                        start = Offset(0f, size.height * (1 - (norm.minNormal - minDisplayValue) / displayRange)),
-                        end = Offset(size.width, size.height * (1 - (norm.minNormal - minDisplayValue) / displayRange)),
-                        strokeWidth = 2f
-                    )
-
-                    drawLine(
-                        color = Color.Red,
-                        start = Offset(0f, size.height * (1 - (norm.redZoneThreshold - minDisplayValue) / displayRange)),
-                        end = Offset(size.width, size.height * (1 - (norm.redZoneThreshold - minDisplayValue) / displayRange)),
-                        strokeWidth = 2f
-                    )
-
-                    // Отрисовка дополнительных линий (100, 200, 400, 500)
-                    listOf(100f, 200f, 400f, 500f).forEach { value ->
-                        val yPos = size.height * (1 - (value - minDisplayValue) / displayRange)
+                    var gridValue = 100f
+                    while (gridValue < maxY) {
+                        val yPos = yFor(gridValue)
                         drawLine(
-                            color = Color.Gray,
+                            color = gridColor,
                             start = Offset(0f, yPos),
                             end = Offset(size.width, yPos),
                             strokeWidth = 1f
                         )
+                        gridValue += 100f
                     }
 
-                    // Отрисовка данных
-                    if (measurements.isNotEmpty()) {
-                        val step = size.width / (measurements.size - 1)
-                        for (i in 0 until measurements.size - 1) {
-                            val startX = i * step
-                            val endX = (i + 1) * step
-                            val startY = size.height * (1 - (measurements[i].second - minDisplayValue) / displayRange)
-                            val endY = size.height * (1 - (measurements[i + 1].second - minDisplayValue) / displayRange)
+                    drawLine(
+                        color = Zone.RED.color,
+                        start = Offset(0f, yFor(norm.redZoneThreshold)),
+                        end = Offset(size.width, yFor(norm.redZoneThreshold)),
+                        strokeWidth = 2.dp.toPx()
+                    )
 
-                            drawLine(
-                                color = Color.Blue,
-                                start = Offset(startX, startY),
-                                end = Offset(endX, endY),
-                                strokeWidth = 2f
-                            )
+                    drawLine(
+                        color = Zone.YELLOW.color,
+                        start = Offset(0f, yFor(norm.minNormal)),
+                        end = Offset(size.width, yFor(norm.minNormal)),
+                        strokeWidth = 2.dp.toPx()
+                    )
 
-                            // Добавление точек для каждого измерения
+                    drawLine(
+                        color = Zone.GREEN.color,
+                        start = Offset(0f, yFor(norm.maxNormal)),
+                        end = Offset(size.width, yFor(norm.maxNormal)),
+                        strokeWidth = 2.dp.toPx()
+                    )
+
+                    when {
+                        measurements.isEmpty() -> Unit
+                        measurements.size == 1 -> {
                             drawCircle(
-                                color = Color.Blue,
-                                radius = 4f,
-                                center = Offset(startX, startY)
+                                color = dataColor,
+                                radius = 5.dp.toPx(),
+                                center = Offset(size.width / 2f, yFor(measurements.first().second))
                             )
                         }
+                        else -> {
+                            val step = size.width / (measurements.size - 1)
+                            for (i in 0 until measurements.size - 1) {
+                                val startX = i * step
+                                val endX = (i + 1) * step
+                                val startY = yFor(measurements[i].second)
+                                val endY = yFor(measurements[i + 1].second)
 
-                        // Добавление последней точки
-                        val lastX = (measurements.size - 1) * step
-                        val lastY = size.height * (1 - (measurements.last().second - minDisplayValue) / displayRange)
-                        drawCircle(
-                            color = Color.Blue,
-                            radius = 4f,
-                            center = Offset(lastX, lastY)
-                        )
-                    }
+                                drawLine(
+                                    color = dataColor,
+                                    start = Offset(startX, startY),
+                                    end = Offset(endX, endY),
+                                    strokeWidth = 2.dp.toPx()
+                                )
 
-                    // Отметки на оси Y (0, 300, 600)
-                    listOf(0f, 300f, 600f).forEach { value ->
-                        val yPos = size.height * (1 - (value - minDisplayValue) / displayRange)
-                        drawLine(
-                            color = Color.Black,
-                            start = Offset(0f, yPos),
-                            end = Offset(size.width, yPos),
-                            strokeWidth = 0.5f
-                        )
+                                drawCircle(
+                                    color = dataColor,
+                                    radius = 5.dp.toPx(),
+                                    center = Offset(startX, startY)
+                                )
+                            }
+
+                            drawCircle(
+                                color = dataColor,
+                                radius = 5.dp.toPx(),
+                                center = Offset(
+                                    (measurements.size - 1) * step,
+                                    yFor(measurements.last().second)
+                                )
+                            )
+                        }
                     }
                 }
             }
