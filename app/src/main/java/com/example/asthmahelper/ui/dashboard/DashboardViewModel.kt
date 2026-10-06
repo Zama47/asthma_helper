@@ -1,5 +1,7 @@
 package com.example.asthmahelper.ui.dashboard
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.asthmahelper.data.api.WeatherApiService
@@ -17,12 +19,14 @@ import com.example.asthmahelper.domain.repository.MedicationLogRepository
 import com.example.asthmahelper.domain.repository.MedicationScheduleRepository
 import com.example.asthmahelper.domain.usecase.AddMeasurementUseCase
 import com.example.asthmahelper.domain.usecase.ToggleMedicationTakenUseCase
+import com.example.asthmahelper.util.WeatherSettingsKeys
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -45,10 +49,11 @@ class DashboardViewModel @Inject constructor(
     breathingNormRepository: BreathingNormRepository,
     private val addMeasurementUseCase: AddMeasurementUseCase,
     private val toggleTakenUseCase: ToggleMedicationTakenUseCase,
-    private val weatherApi: WeatherApiService
+    private val weatherApi: WeatherApiService,
+    private val dataStore: DataStore<Preferences>
 ) : ViewModel() {
 
-    // Координаты по умолчанию (Москва)
+    // Координаты по умолчанию (Москва), если город не выбран вручную
     private val defaultLat = 55.7558
     private val defaultLon = 37.6173
 
@@ -59,8 +64,13 @@ class DashboardViewModel @Inject constructor(
 
     /** Данные о погоде, качестве воздуха и пыльце из Open-Meteo API. */
     val weatherData: StateFlow<WeatherDashboardData> = flow {
+        // Город, выбранный на экране погоды, либо Москва по умолчанию
+        val prefs = dataStore.data.first()
+        val lat = prefs[WeatherSettingsKeys.CITY_LAT] ?: defaultLat
+        val lon = prefs[WeatherSettingsKeys.CITY_LON] ?: defaultLon
+
         try {
-            val air = weatherApi.getAirQuality(defaultLat, defaultLon)
+            val air = weatherApi.getAirQuality(lat, lon)
             val airCurrent = air.current
 
             val airQuality = AirQualityInfo(

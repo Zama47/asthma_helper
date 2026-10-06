@@ -1,6 +1,9 @@
 package com.example.asthmahelper.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
 import com.example.asthmahelper.data.api.WeatherApiService
 import com.example.asthmahelper.data.db.AppDatabase
@@ -25,6 +28,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
+
+/** DataStore с настройками погоды (выбранный город). Один экземпляр на процесс. */
+private val Context.weatherDataStore by preferencesDataStore(name = "weather_settings")
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -96,5 +102,11 @@ object AppModule {
     @Singleton
     fun provideWeatherApiService(retrofit: Retrofit): WeatherApiService {
         return retrofit.create(WeatherApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWeatherDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+        return context.weatherDataStore
     }
 }

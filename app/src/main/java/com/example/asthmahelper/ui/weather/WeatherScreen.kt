@@ -12,19 +12,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +49,8 @@ import com.example.asthmahelper.domain.model.PollenLevel
 fun WeatherScreen(navController: androidx.navigation.NavController) {
     val viewModel: WeatherViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
+
+    var showCityDialog by remember { mutableStateOf(false) }
 
     // Запрос разрешения на геолокацию (Android 6.0+)
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -63,6 +75,21 @@ fun WeatherScreen(navController: androidx.navigation.NavController) {
         }
     }
 
+    // Переход с выбранного города обратно на геолокацию устройства
+    val requestDeviceLocation = {
+        viewModel.prepareDeviceLocation()
+        if (viewModel.hasLocationPermission()) {
+            viewModel.loadWeatherData()
+        } else {
+            permissionLauncher.launch(
+                arrayOf(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -75,15 +102,76 @@ fun WeatherScreen(navController: androidx.navigation.NavController) {
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        when {
-            state.isLoading -> {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+        // Выбор города вручную (запасной вариант, если геолокация не работает)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedButton(onClick = { showCityDialog = true }) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Выбрать город")
+            }
+            if (state.isManualCity) {
+                TextButton(onClick = { requestDeviceLocation() }) {
+                    Text("Моё местоположение")
                 }
             }
-            state.error != null -> {
+        }
+
+        if (state.isManualCity || state.isUsingRealLocation) {
+            Text(
+                text = if (state.isManualCity) {
+                    "Местоположение: выбранный город"
+                } else {
+                    "Местоположение: геолокация"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Геолокация не сработала и город не выбран — подсказываем
+        if (state.locationUnavailable && !state.isManualCity) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        text = "Не удалось определить местоположение",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                    Text(
+                        text = "Выберите город вручную, чтобы данные были точными.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (state.isLoading) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            // Ошибка больше не скрывает данные: показываем её как предупреждение,
+            // если что-то из прогноза/воздуха всё же загрузилось
+            if (state.error != null) {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(text = state.error!!, color = MaterialTheme.colorScheme.error)
@@ -93,8 +181,12 @@ fun WeatherScreen(navController: androidx.navigation.NavController) {
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
-            else -> {
+
+            val hasAnyData =
+                state.weather != null || state.airQuality != null || state.pollen != null
+            if (hasAnyData) {
                 state.weather?.let { weather ->
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -184,6 +276,17 @@ fun WeatherScreen(navController: androidx.navigation.NavController) {
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
+    }
+
+    if (showCityDialog) {
+        CityPickerDialog(
+            onDismiss = { showCityDialog = false },
+            onSearch = viewModel::searchCities,
+            onCitySelected = { name, lat, lon ->
+                viewModel.selectCity(name, lat, lon)
+                showCityDialog = false
+            }
+        )
     }
 }
 

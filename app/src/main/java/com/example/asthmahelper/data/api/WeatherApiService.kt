@@ -2,6 +2,7 @@ package com.example.asthmahelper.data.api
 
 import com.example.asthmahelper.data.api.dto.AirQualityResponse
 import com.example.asthmahelper.data.api.dto.ForecastResponse
+import com.example.asthmahelper.data.api.dto.GeocodingResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -32,4 +33,13 @@ interface WeatherApiService {
             "european_aqi,pm2_5,pm10,ozone,nitrogen_dioxide," +
                 "birch_pollen,alder_pollen,grass_pollen,mugwort_pollen,ragweed_pollen"
     ): AirQualityResponse
+
+    /** Поиск города по названию (forward geocoding, без ключа). */
+    @GET("https://geocoding-api.open-meteo.com/v1/search")
+    suspend fun searchCities(
+        @Query("name") name: String,
+        @Query("count") count: Int = 8,
+        @Query("language") language: String = "ru",
+        @Query("format") format: String = "json"
+    ): GeocodingResponse
 }
