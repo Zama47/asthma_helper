@@ -1,5 +1,3 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.hilt.android)
@@ -13,21 +11,12 @@ android {
         version = release(37)
     }
 
-    // API-ключ читается из local.properties (не коммитится в git)
-    val localProperties = Properties().apply {
-        val file = rootProject.file("local.properties")
-        if (file.exists()) file.inputStream().use { load(it) }
-    }
-    val weatherApiKey = localProperties.getProperty("WEATHER_API_KEY", "")
-
     defaultConfig {
         applicationId = "com.example.asthmahelper"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.0.1b"
-
-        buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
+        versionCode = 4
+        versionName = "0.1b"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -47,7 +36,6 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true
     }
     packaging {
         resources {
@@ -90,8 +78,6 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
 
-    // Vico (графики)
-    implementation(libs.vico.compose.m3)
     implementation(libs.androidx.room.ktx)
 
     // Retrofit + OkHttp + Gson

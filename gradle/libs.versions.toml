@@ -35,9 +35,6 @@ datastore = "1.1.1"
 # androidx.hilt
 androidxHilt = "1.4.0"
 
-# Charts (Vico)
-vico = "2.1.2"
-
 # Navigation
 navigation = "2.8.2"
 
@@ -88,9 +85,6 @@ play-services-location = { group = "com.google.android.gms", name = "play-servic
 
 # DataStore
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
-
-# Charts (Vico)
-vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
