@@ -14,6 +14,10 @@ gradle/wrapper/gradle-wrapper.jar
 # Local config (API keys, SDK path)
 local.properties
 
+# Release signing (never commit)
+/keystore/
+/keystore.properties
+
 # OS
 .DS_Store
 Thumbs.db
