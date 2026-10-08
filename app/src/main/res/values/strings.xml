@@ -4,6 +4,7 @@
     <string name="breathing">Дыхание</string>
     <string name="medications">Лекарства</string>
     <string name="weather">Погода</string>
+    <string name="calendar">Календарь</string>
     <string name="add_measurement">Добавить замер</string>
     <string name="measurement_value">Значение (л/мин)</string>
     <string name="measurement_note">Примечание</string>

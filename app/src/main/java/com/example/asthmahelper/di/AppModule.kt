@@ -5,13 +5,17 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.asthmahelper.data.api.WeatherApiService
 import com.example.asthmahelper.data.db.AppDatabase
+import com.example.asthmahelper.data.repository.AsthmaAttackLogRepositoryImpl
 import com.example.asthmahelper.data.repository.BreathingNormRepositoryImpl
 import com.example.asthmahelper.data.repository.DutyMeasurementRepositoryImpl
 import com.example.asthmahelper.data.repository.MedicineRepositoryImpl
 import com.example.asthmahelper.data.repository.MedicationLogRepositoryImpl
 import com.example.asthmahelper.data.repository.MedicationScheduleRepositoryImpl
+import com.example.asthmahelper.domain.repository.AsthmaAttackLogRepository
 import com.example.asthmahelper.domain.repository.BreathingNormRepository
 import com.example.asthmahelper.domain.repository.DutyMeasurementRepository
 import com.example.asthmahelper.domain.repository.MedicineRepository
@@ -32,6 +36,22 @@ import javax.inject.Singleton
 /** DataStore с настройками погоды (выбранный город). Один экземпляр на процесс. */
 private val Context.weatherDataStore by preferencesDataStore(name = "weather_settings")
 
+/** v1 → v2: таблица календаря приступов астмы. */
+private val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `asthma_attacks` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`timestamp` INTEGER NOT NULL, " +
+                "`severity` TEXT NOT NULL, " +
+                "`rescueDoses` INTEGER NOT NULL, " +
+                "`triggers` TEXT NOT NULL, " +
+                "`location` TEXT, " +
+                "`notes` TEXT)"
+        )
+    }
+}
+
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
@@ -43,7 +63,15 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "asthma_helper_db"
-        ).build()
+        )
+            .addMigrations(MIGRATION_1_2)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAsthmaAttackLogRepository(db: AppDatabase): AsthmaAttackLogRepository {
+        return AsthmaAttackLogRepositoryImpl(db.asthmaAttackLogDao())
     }
 
     @Provides

@@ -1,6 +1,7 @@
 package com.example.asthmahelper.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
@@ -33,6 +34,7 @@ fun BottomNavigationBar(navController: NavController) {
         BottomItem(R.string.dashboard, Icons.Filled.Dashboard, "dashboard"),
         BottomItem(R.string.breathing, Icons.Filled.Favorite, "breathing"),
         BottomItem(R.string.medications, Icons.Filled.List, "medications"),
+        BottomItem(R.string.calendar, Icons.Filled.CalendarMonth, "calendar"),
         BottomItem(R.string.weather, Icons.Filled.WbSunny, "weather")
     )
 

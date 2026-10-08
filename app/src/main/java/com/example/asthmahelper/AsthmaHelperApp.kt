@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.asthmahelper.ui.components.BottomNavigationBar
 import com.example.asthmahelper.ui.breathing.BreathingScreen
+import com.example.asthmahelper.ui.calendar.AsthmaCalendarScreen
 import com.example.asthmahelper.ui.dashboard.DashboardScreen
 import com.example.asthmahelper.ui.medications.MedicationsScreen
 import com.example.asthmahelper.ui.weather.WeatherScreen
@@ -30,6 +31,7 @@ fun AsthmaHelperApp() {
             composable("dashboard") { DashboardScreen(navController) }
             composable("breathing") { BreathingScreen(navController) }
             composable("medications") { MedicationsScreen(navController) }
+            composable("calendar") { AsthmaCalendarScreen(navController) }
             composable("weather") { WeatherScreen(navController) }
         }
     }
