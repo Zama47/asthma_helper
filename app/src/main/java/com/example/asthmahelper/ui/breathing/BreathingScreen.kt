@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -125,6 +126,7 @@ private fun computeDailyVariability(measurements: List<DutyMeasurement>): DailyV
 @Composable
 fun BreathingScreen(navController: androidx.navigation.NavController) {
     val viewModel: BreathingViewModel = hiltViewModel()
+    val locale = LocalConfiguration.current.locales[0]
 
     val measurements by viewModel.measurements.collectAsState()
     val norm by viewModel.breathingNorm.collectAsState()
@@ -236,7 +238,7 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
                         Text(
                             text = SimpleDateFormat(
                                 "dd.MM.yyyy HH:mm",
-                                Locale.getDefault()
+                                locale
                             ).format(Date(measurement.timestamp)),
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -284,6 +286,7 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
 @Composable
 private fun VariabilityCard(variability: DailyVariability?) {
     val colorScheme = MaterialTheme.colorScheme
+    val locale = LocalConfiguration.current.locales[0]
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -363,7 +366,7 @@ private fun VariabilityCard(variability: DailyVariability?) {
                 val verdict = variabilityVerdict(variability.percent)
 
                 Text(
-                    text = String.format(Locale.getDefault(), "%.1f %%", variability.percent),
+                    text = String.format(locale, "%.1f %%", variability.percent),
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
                     color = verdict.color

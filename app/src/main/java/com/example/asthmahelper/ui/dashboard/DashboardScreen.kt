@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -46,6 +47,7 @@ import java.util.Locale
 @Composable
 fun DashboardScreen(navController: androidx.navigation.NavController) {
     val viewModel: DashboardViewModel = hiltViewModel()
+    val locale = LocalConfiguration.current.locales[0]
     var showAddMeasurementDialog by remember { mutableStateOf(false) }
 
     val measurements by viewModel.recentMeasurements.collectAsState()
@@ -195,7 +197,7 @@ fun DashboardScreen(navController: androidx.navigation.NavController) {
                                 fontWeight = FontWeight.Medium
                             )
                             Text(
-                                text = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+                                text = SimpleDateFormat("dd.MM.yyyy HH:mm", locale)
                                     .format(Date(measurement.timestamp)),
                                 style = MaterialTheme.typography.bodySmall
                             )
