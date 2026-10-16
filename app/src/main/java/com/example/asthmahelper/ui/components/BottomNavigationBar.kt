@@ -19,11 +19,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.asthmahelper.R
 
-private data class BottomItem(
-    val titleRes: Int,
-    val icon: ImageVector,
-    val route: String
-)
+private data class BottomItem(val titleRes: Int, val icon: ImageVector, val route: String)
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {

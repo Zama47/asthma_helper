@@ -26,8 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.asthmahelper.domain.model.BreathingNorm
 import kotlin.math.ceil
@@ -74,11 +72,7 @@ fun BreathingChartWidget(
 }
 
 @Composable
-private fun NormConfigDialog(
-    norm: BreathingNorm,
-    onNormChanged: (BreathingNorm) -> Unit,
-    onClose: () -> Unit
-) {
+private fun NormConfigDialog(norm: BreathingNorm, onNormChanged: (BreathingNorm) -> Unit, onClose: () -> Unit) {
     var minNormal by remember { mutableStateOf(norm.minNormal.toString()) }
     var maxNormal by remember { mutableStateOf(norm.maxNormal.toString()) }
     var redZoneThreshold by remember { mutableStateOf(norm.redZoneThreshold.toString()) }
@@ -132,11 +126,7 @@ private fun NormConfigDialog(
 }
 
 @Composable
-private fun ChartContainer(
-    modifier: Modifier = Modifier,
-    measurements: List<Pair<Long, Float>>,
-    norm: BreathingNorm
-) {
+private fun ChartContainer(modifier: Modifier = Modifier, measurements: List<Pair<Long, Float>>, norm: BreathingNorm) {
     val colorScheme = MaterialTheme.colorScheme
     val containerColor = colorScheme.surfaceContainerHighest
     val axisColor = colorScheme.onSurfaceVariant
@@ -189,8 +179,7 @@ private fun ChartContainer(
                     val minDisplayValue = 0f
                     val displayRange = maxY - minDisplayValue
 
-                    fun yFor(value: Float): Float =
-                        size.height * (1 - (value - minDisplayValue) / displayRange)
+                    fun yFor(value: Float): Float = size.height * (1 - (value - minDisplayValue) / displayRange)
 
                     var gridValue = 100f
                     while (gridValue < maxY) {

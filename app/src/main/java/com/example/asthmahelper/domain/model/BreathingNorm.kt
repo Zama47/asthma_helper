@@ -11,7 +11,8 @@ package com.example.asthmahelper.domain.model
 data class BreathingNorm(
     val minNormal: Float,
     val maxNormal: Float,
-    val formulaType: Int // 0 - manual, 1 - by age/height
+    // 0 - manual, 1 - by age/height
+    val formulaType: Int
 ) {
     /** Нижняя граница красной зоны (л/мин): 50% от maxNormal. */
     val redZoneThreshold: Float

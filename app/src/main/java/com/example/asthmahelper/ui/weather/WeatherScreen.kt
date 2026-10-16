@@ -313,8 +313,11 @@ private fun RecommendationsBlock(state: WeatherUiState) {
                 add("Максимальная концентрация: ${highPlants.joinToString(", ") { it.name }}.")
             }
         }
-        if (weather != null && weather.windSpeed > 6 && pollen != null &&
-            pollen.level != PollenLevel.NONE && pollen.level != PollenLevel.LOW
+        if (weather != null &&
+            weather.windSpeed > 6 &&
+            pollen != null &&
+            pollen.level != PollenLevel.NONE &&
+            pollen.level != PollenLevel.LOW
         ) {
             add("Сухо и ветрено — пыльца разносится активно, ограничьте прогулки.")
         }
@@ -346,15 +349,13 @@ private fun RecommendationsBlock(state: WeatherUiState) {
     }
 }
 
-
-
 @Composable
 private fun aqiColor(aqi: Int): Color = when {
-    aqi <= 20 -> Color(0xFF4CAF50)   // Хорошее
-    aqi <= 40 -> Color(0xFF8BC34A)   // Удовлетворительное
-    aqi <= 60 -> Color(0xFFFFC107)   // Умеренное
-    aqi <= 80 -> Color(0xFFFF9800)   // Плохое
-    else -> Color(0xFFF44336)        // Очень плохое
+    aqi <= 20 -> Color(0xFF4CAF50) // Хорошее
+    aqi <= 40 -> Color(0xFF8BC34A) // Удовлетворительное
+    aqi <= 60 -> Color(0xFFFFC107) // Умеренное
+    aqi <= 80 -> Color(0xFFFF9800) // Плохое
+    else -> Color(0xFFF44336) // Очень плохое
 }
 
 @Composable

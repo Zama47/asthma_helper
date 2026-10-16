@@ -22,10 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.example.asthmahelper.R
 
 @Composable
-fun AddMeasurementDialog(
-    onDismiss: () -> Unit,
-    onSave: (Float, String?) -> Unit
-) {
+fun AddMeasurementDialog(onDismiss: () -> Unit, onSave: (Float, String?) -> Unit) {
     var value by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
 

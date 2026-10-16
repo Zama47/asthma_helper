@@ -10,20 +10,20 @@ import androidx.lifecycle.viewModelScope
 import com.example.asthmahelper.data.api.WeatherApiService
 import com.example.asthmahelper.data.api.dto.GeocodingResult
 import com.example.asthmahelper.domain.model.AirQualityInfo
-import com.example.asthmahelper.domain.model.PollenInfo
 import com.example.asthmahelper.domain.model.Plant
+import com.example.asthmahelper.domain.model.PollenInfo
 import com.example.asthmahelper.domain.model.PollenLevel
 import com.example.asthmahelper.domain.model.WeatherInfo
 import com.example.asthmahelper.util.LocationProvider
 import com.example.asthmahelper.util.WeatherSettingsKeys
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import javax.inject.Inject
 
 data class WeatherUiState(
     val isLoading: Boolean = false,
@@ -31,9 +31,12 @@ data class WeatherUiState(
     val airQuality: AirQualityInfo? = null,
     val pollen: PollenInfo? = null,
     val error: String? = null,
-    val isUsingRealLocation: Boolean = false, // true — геолокация получена
-    val isManualCity: Boolean = false,        // true — выбран город вручную
-    val locationUnavailable: Boolean = false  // true — гео не сработало и города нет
+    // true — геолокация получена
+    val isUsingRealLocation: Boolean = false,
+    // true — выбран город вручную
+    val isManualCity: Boolean = false,
+    // true — гео не сработало и города нет
+    val locationUnavailable: Boolean = false
 )
 
 @HiltViewModel
@@ -264,25 +267,23 @@ class WeatherViewModel @Inject constructor(
      * Название города через бесплатный BigDataCloud reverse geocoding (без ключа).
      * При ошибке — fallback на координаты/крупные города.
      */
-    private fun cityNameByCoords(lat: Double, lon: Double): String {
-        return try {
-            val url = "https://api.bigdatacloud.net/data/reverse-geocode-client" +
-                "?latitude=$lat&longitude=$lon&localityLanguage=ru"
-            val connection = java.net.URL(url).openConnection() as java.net.HttpURLConnection
-            connection.connectTimeout = 5_000
-            connection.readTimeout = 5_000
-            connection.requestMethod = "GET"
-            val body = connection.inputStream.bufferedReader().use { it.readText() }
-            connection.disconnect()
+    private fun cityNameByCoords(lat: Double, lon: Double): String = try {
+        val url = "https://api.bigdatacloud.net/data/reverse-geocode-client" +
+            "?latitude=$lat&longitude=$lon&localityLanguage=ru"
+        val connection = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+        connection.connectTimeout = 5_000
+        connection.readTimeout = 5_000
+        connection.requestMethod = "GET"
+        val body = connection.inputStream.bufferedReader().use { it.readText() }
+        connection.disconnect()
 
-            val cityMatch = Regex("\"city\"\\s*:\\s*\"([^\"]+)\"").find(body)
-            val localityMatch = Regex("\"locality\"\\s*:\\s*\"([^\"]+)\"").find(body)
-            cityMatch?.groupValues?.get(1)?.takeIf { it.isNotBlank() }
-                ?: localityMatch?.groupValues?.get(1)?.takeIf { it.isNotBlank() }
-                ?: fallbackCityName(lat, lon)
-        } catch (e: Exception) {
-            fallbackCityName(lat, lon)
-        }
+        val cityMatch = Regex("\"city\"\\s*:\\s*\"([^\"]+)\"").find(body)
+        val localityMatch = Regex("\"locality\"\\s*:\\s*\"([^\"]+)\"").find(body)
+        cityMatch?.groupValues?.get(1)?.takeIf { it.isNotBlank() }
+            ?: localityMatch?.groupValues?.get(1)?.takeIf { it.isNotBlank() }
+            ?: fallbackCityName(lat, lon)
+    } catch (e: Exception) {
+        fallbackCityName(lat, lon)
     }
 
     private fun fallbackCityName(lat: Double, lon: Double): String = when {

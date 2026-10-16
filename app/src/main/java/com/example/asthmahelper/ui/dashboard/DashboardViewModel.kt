@@ -10,9 +10,9 @@ import com.example.asthmahelper.domain.model.BreathingNorm
 import com.example.asthmahelper.domain.model.DutyMeasurement
 import com.example.asthmahelper.domain.model.MedicationLog
 import com.example.asthmahelper.domain.model.MedicationSchedule
+import com.example.asthmahelper.domain.model.Plant
 import com.example.asthmahelper.domain.model.PollenInfo
 import com.example.asthmahelper.domain.model.PollenLevel
-import com.example.asthmahelper.domain.model.Plant
 import com.example.asthmahelper.domain.repository.BreathingNormRepository
 import com.example.asthmahelper.domain.repository.DutyMeasurementRepository
 import com.example.asthmahelper.domain.repository.MedicationLogRepository
@@ -21,6 +21,8 @@ import com.example.asthmahelper.domain.usecase.AddMeasurementUseCase
 import com.example.asthmahelper.domain.usecase.ToggleMedicationTakenUseCase
 import com.example.asthmahelper.util.WeatherSettingsKeys
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.Calendar
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,13 +34,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import javax.inject.Inject
 
-data class TodayMedicationUiItem(
-    val schedule: MedicationSchedule,
-    val taken: Boolean
-)
+data class TodayMedicationUiItem(val schedule: MedicationSchedule, val taken: Boolean)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -57,10 +54,7 @@ class DashboardViewModel @Inject constructor(
     private val defaultLat = 55.7558
     private val defaultLon = 37.6173
 
-    data class WeatherDashboardData(
-        val airQuality: AirQualityInfo?,
-        val pollen: PollenInfo?
-    )
+    data class WeatherDashboardData(val airQuality: AirQualityInfo?, val pollen: PollenInfo?)
 
     /** Данные о погоде, качестве воздуха и пыльце из Open-Meteo API. */
     val weatherData: StateFlow<WeatherDashboardData> = flow {

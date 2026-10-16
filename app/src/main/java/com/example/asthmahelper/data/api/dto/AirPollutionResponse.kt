@@ -2,9 +2,7 @@ package com.example.asthmahelper.data.api.dto
 
 import com.google.gson.annotations.SerializedName
 
-data class AirPollutionResponse(
-    @SerializedName("list") val list: List<AirPollutionItem>
-)
+data class AirPollutionResponse(@SerializedName("list") val list: List<AirPollutionItem>)
 
 data class AirPollutionItem(
     @SerializedName("main") val main: AirQualityMain,
@@ -13,7 +11,8 @@ data class AirPollutionItem(
 )
 
 data class AirQualityMain(
-    @SerializedName("aqi") val aqi: Int // 1..5 (1 - Good, 5 - Very Poor)
+    // 1..5 (1 - Good, 5 - Very Poor)
+    @SerializedName("aqi") val aqi: Int
 )
 
 data class AirComponents(

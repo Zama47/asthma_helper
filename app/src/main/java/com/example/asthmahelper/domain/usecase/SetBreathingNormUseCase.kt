@@ -8,9 +8,7 @@ import javax.inject.Inject
  * Сохраняет норму дыхания.
  * formulaType: 0 - ручной ввод, 1 - по возрасту/росту (норма уже рассчитана вызывающей стороной).
  */
-class SetBreathingNormUseCase @Inject constructor(
-    private val repository: BreathingNormRepository
-) {
+class SetBreathingNormUseCase @Inject constructor(private val repository: BreathingNormRepository) {
     suspend operator fun invoke(minNormal: Float, maxNormal: Float, formulaType: Int) {
         require(minNormal > 0f && maxNormal > minNormal) {
             "Минимум должен быть больше нуля, а максимум больше минимума"
@@ -21,8 +19,11 @@ class SetBreathingNormUseCase @Inject constructor(
             maxNormal = maxNormal,
             formulaType = formulaType
         )
-        if (existing != null) repository.updateBreathingNorm(norm)
-        else repository.insertBreathingNorm(norm)
+        if (existing != null) {
+            repository.updateBreathingNorm(norm)
+        } else {
+            repository.insertBreathingNorm(norm)
+        }
     }
 
     companion object {

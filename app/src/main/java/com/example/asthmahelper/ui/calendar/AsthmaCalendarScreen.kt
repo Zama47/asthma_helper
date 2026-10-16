@@ -17,10 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -87,8 +87,14 @@ private fun severityLabel(severity: AttackSeverity): String = when (severity) {
 }
 
 private val TriggerPresets = listOf(
-    "Пыльца", "Холодный воздух", "Физическая нагрузка", "Стресс",
-    "Простуда / инфекция", "Пыль", "Дым / загрязнение", "Неизвестно"
+    "Пыльца",
+    "Холодный воздух",
+    "Физическая нагрузка",
+    "Стресс",
+    "Простуда / инфекция",
+    "Пыль",
+    "Дым / загрязнение",
+    "Неизвестно"
 )
 
 private val LocationPresets = listOf("Дома", "На улице", "На работе", "Транспорт")
@@ -589,11 +595,7 @@ private fun LegendDot(color: Color, label: String) {
 // ---------- TIER 3: история дня ----------
 
 @Composable
-private fun AttackCard(
-    attack: AsthmaAttackLog,
-    onClick: () -> Unit,
-    onDelete: () -> Unit
-) {
+private fun AttackCard(attack: AsthmaAttackLog, onClick: () -> Unit, onDelete: () -> Unit) {
     val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     val color = severityColor(attack.severity)
 
