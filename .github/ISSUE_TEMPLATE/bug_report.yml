@@ -1,0 +1,49 @@
+name: 🐞 Баг
+description: Сообщить об ошибке в приложении
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо за сообщение! Чем точнее описание — тем быстрее исправление.
+        ⚠️ Не публикуйте персональные медицинские данные.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Что произошло
+      description: Опишите, что вы сделали и что пошло не так.
+      placeholder: При открытии экрана «Календарь» приложение закрывается…
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Шаги воспроизведения
+      placeholder: |
+        1. Открыть …
+        2. Нажать …
+        3. Увидеть …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ожидаемое поведение
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Версия приложения
+      description: Настройки → О приложении, или из названия APK.
+      placeholder: "0.1b"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Устройство и Android
+      placeholder: "Pixel 6, Android 14"
+    validations:
+      required: true
