@@ -9,8 +9,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Проверяет, что схема текущей версии создаётся и что экспортированная схема валидна.
- * Когда появится версия 3, сюда добавятся тесты миграций 2 -> 3 и т.д.
+ * Проверяет, что схема текущей версии создаётся и миграции доводят базу до неё.
+ * При добавлении версии 4 — добавить тест 3 -> 4.
  */
 @RunWith(AndroidJUnit4::class)
 class AppDatabaseMigrationTest {
@@ -35,6 +35,14 @@ class AppDatabaseMigrationTest {
         } finally {
             db.close()
         }
+    }
+
+    @Test
+    fun migratesFromV2ToCurrent() {
+        helper.createDatabase(TEST_DB, 2).close()
+
+        // Падает, если миграция не доводит схему до APP_DATABASE_VERSION.
+        helper.runMigrationsAndValidate(TEST_DB, APP_DATABASE_VERSION, true, *ALL_MIGRATIONS)
     }
 
     companion object {

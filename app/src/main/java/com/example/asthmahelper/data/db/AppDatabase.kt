@@ -21,7 +21,7 @@ import com.example.asthmahelper.data.db.entity.MedicineEntity
  * При изменении entities не забыть: bump версии + добавить Migration + запустить сборку,
  * чтобы сгенерировался новый schemas/<version>.json.
  */
-const val APP_DATABASE_VERSION = 2
+const val APP_DATABASE_VERSION = 3
 
 @Database(
     entities = [

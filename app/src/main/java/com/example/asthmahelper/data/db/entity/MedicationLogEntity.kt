@@ -2,6 +2,7 @@ package com.example.asthmahelper.data.db.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -13,7 +14,8 @@ import androidx.room.PrimaryKey
             childColumns = ["scheduleId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["scheduleId"])]
 )
 data class MedicationLogEntity(
     @PrimaryKey(autoGenerate = true)
