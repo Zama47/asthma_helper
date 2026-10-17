@@ -18,7 +18,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -156,8 +155,13 @@ private fun daysLabel(daysOfWeek: String): String {
     if (daysOfWeek == "1234567") return "Каждый день"
     return daysOfWeek.mapNotNull { c ->
         when (c) {
-            '1' -> "Пн"; '2' -> "Вт"; '3' -> "Ср"; '4' -> "Чт"
-            '5' -> "Пт"; '6' -> "Сб"; '7' -> "Вс"
+            '1' -> "Пн"
+            '2' -> "Вт"
+            '3' -> "Ср"
+            '4' -> "Чт"
+            '5' -> "Пт"
+            '6' -> "Сб"
+            '7' -> "Вс"
             else -> null
         }
     }.joinToString(", ")
@@ -293,7 +297,9 @@ private fun AddMedicineWithScheduleDialog(
                     isError = timeText.isNotBlank() && !timeValid,
                     supportingText = if (timeText.isNotBlank() && !timeValid) {
                         { Text("Формат: 08:30") }
-                    } else null,
+                    } else {
+                        null
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -357,12 +363,7 @@ private fun AddMedicineWithScheduleDialog(
 }
 
 @Composable
-private fun DayChip(
-    label: String,
-    dayNumber: Int,
-    selectedDays: Set<Int>,
-    onToggle: (Int, Boolean) -> Unit
-) {
+private fun DayChip(label: String, dayNumber: Int, selectedDays: Set<Int>, onToggle: (Int, Boolean) -> Unit) {
     FilterChip(
         selected = dayNumber in selectedDays,
         onClick = { onToggle(dayNumber, dayNumber !in selectedDays) },

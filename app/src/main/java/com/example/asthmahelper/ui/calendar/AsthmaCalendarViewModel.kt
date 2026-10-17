@@ -10,6 +10,8 @@ import com.example.asthmahelper.domain.repository.AsthmaAttackLogRepository
 import com.example.asthmahelper.domain.repository.MedicationLogRepository
 import com.example.asthmahelper.domain.repository.MedicationScheduleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.Calendar
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,8 +23,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import javax.inject.Inject
 
 /** Год и месяц (month: 0..11, как в Calendar). */
 data class MonthYear(val year: Int, val month: Int)
@@ -157,14 +157,13 @@ class AsthmaCalendarViewModel @Inject constructor(
 
 private const val MILLIS_PER_DAY = 24L * 60 * 60 * 1000
 
-fun startOfDayMillis(timestamp: Long): Long =
-    Calendar.getInstance().apply {
-        timeInMillis = timestamp
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
-    }.timeInMillis
+fun startOfDayMillis(timestamp: Long): Long = Calendar.getInstance().apply {
+    timeInMillis = timestamp
+    set(Calendar.HOUR_OF_DAY, 0)
+    set(Calendar.MINUTE, 0)
+    set(Calendar.SECOND, 0)
+    set(Calendar.MILLISECOND, 0)
+}.timeInMillis
 
 /**
  * Дней без приступов подряд, считая назад от сегодняшнего дня.
@@ -185,17 +184,15 @@ fun isNightAttack(timestamp: Long): Boolean {
     return hour in 0..5
 }
 
-fun currentMonth(): MonthYear =
-    with(Calendar.getInstance()) {
-        MonthYear(get(Calendar.YEAR), get(Calendar.MONTH))
-    }
+fun currentMonth(): MonthYear = with(Calendar.getInstance()) {
+    MonthYear(get(Calendar.YEAR), get(Calendar.MONTH))
+}
 
 /** Месяц, в который попадает указанный момент времени. */
-fun monthOf(timestamp: Long): MonthYear =
-    with(Calendar.getInstance()) {
-        timeInMillis = timestamp
-        MonthYear(get(Calendar.YEAR), get(Calendar.MONTH))
-    }
+fun monthOf(timestamp: Long): MonthYear = with(Calendar.getInstance()) {
+    timeInMillis = timestamp
+    MonthYear(get(Calendar.YEAR), get(Calendar.MONTH))
+}
 
 fun nextMonth(month: MonthYear): MonthYear =
     if (month.month == 11) MonthYear(month.year + 1, 0) else MonthYear(month.year, month.month + 1)
@@ -203,17 +200,16 @@ fun nextMonth(month: MonthYear): MonthYear =
 fun prevMonth(month: MonthYear): MonthYear =
     if (month.month == 0) MonthYear(month.year - 1, 11) else MonthYear(month.year, month.month - 1)
 
-fun monthStartMillis(month: MonthYear): Long =
-    Calendar.getInstance().apply {
-        timeInMillis = 0
-        set(Calendar.YEAR, month.year)
-        set(Calendar.MONTH, month.month)
-        set(Calendar.DAY_OF_MONTH, 1)
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
-    }.timeInMillis
+fun monthStartMillis(month: MonthYear): Long = Calendar.getInstance().apply {
+    timeInMillis = 0
+    set(Calendar.YEAR, month.year)
+    set(Calendar.MONTH, month.month)
+    set(Calendar.DAY_OF_MONTH, 1)
+    set(Calendar.HOUR_OF_DAY, 0)
+    set(Calendar.MINUTE, 0)
+    set(Calendar.SECOND, 0)
+    set(Calendar.MILLISECOND, 0)
+}.timeInMillis
 
 /** Последняя миллисекунда месяца (для диапазонов с BETWEEN). */
 fun monthEndMillis(month: MonthYear): Long = monthStartMillis(nextMonth(month)) - 1

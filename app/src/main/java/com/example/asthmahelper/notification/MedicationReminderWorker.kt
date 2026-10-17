@@ -19,8 +19,8 @@ import com.example.asthmahelper.domain.model.MedicationSchedule
 import com.example.asthmahelper.domain.repository.MedicationScheduleRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.flow.first
 import java.util.Calendar
+import kotlinx.coroutines.flow.first
 
 /**
  * WorkManager-воркер: проверяет расписания и показывает уведомление,

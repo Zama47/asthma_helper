@@ -10,15 +10,12 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import kotlin.coroutines.resume
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.coroutines.resume
 
-data class GeoPoint(
-    val lat: Double,
-    val lon: Double
-)
+data class GeoPoint(val lat: Double, val lon: Double)
 
 /**
  * Провайдер геолокации через FusedLocationProviderClient (Google Play Services).

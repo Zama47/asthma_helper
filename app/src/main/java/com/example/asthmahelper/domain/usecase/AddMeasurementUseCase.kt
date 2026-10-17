@@ -5,9 +5,7 @@ import com.example.asthmahelper.domain.repository.DutyMeasurementRepository
 import javax.inject.Inject
 
 /** Добавляет новый замер пикфлоуметрии. */
-class AddMeasurementUseCase @Inject constructor(
-    private val repository: DutyMeasurementRepository
-) {
+class AddMeasurementUseCase @Inject constructor(private val repository: DutyMeasurementRepository) {
     suspend operator fun invoke(value: Float, note: String? = null): Long {
         require(value > 0f) { "Значение замера должно быть положительным" }
         return repository.insertMeasurement(

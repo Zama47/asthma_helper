@@ -8,12 +8,12 @@ import com.example.asthmahelper.domain.repository.BreathingNormRepository
 import com.example.asthmahelper.domain.repository.DutyMeasurementRepository
 import com.example.asthmahelper.domain.usecase.SetBreathingNormUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class BreathingViewModel @Inject constructor(

@@ -52,10 +52,15 @@ fun SetBreathingNormDialog(
     val ageParsed = age.toIntOrNull()
     val heightParsed = height.toFloatOrNull()
 
-    val manualValid = minParsed != null && maxParsed != null &&
-        minParsed > 0f && maxParsed > minParsed
-    val formulaValid = ageParsed != null && ageParsed in 1..119 &&
-        heightParsed != null && heightParsed >= 80f && heightParsed <= 250f
+    val manualValid = minParsed != null &&
+        maxParsed != null &&
+        minParsed > 0f &&
+        maxParsed > minParsed
+    val formulaValid = ageParsed != null &&
+        ageParsed in 1..119 &&
+        heightParsed != null &&
+        heightParsed >= 80f &&
+        heightParsed <= 250f
     val canSave = if (formulaType == 0) manualValid else formulaValid
 
     AlertDialog(

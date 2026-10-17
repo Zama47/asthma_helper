@@ -10,10 +10,7 @@ data class WeatherResponse(
     @SerializedName("name") val cityName: String
 )
 
-data class Coord(
-    @SerializedName("lat") val lat: Double,
-    @SerializedName("lon") val lon: Double
-)
+data class Coord(@SerializedName("lat") val lat: Double, @SerializedName("lon") val lon: Double)
 
 data class WeatherCondition(
     @SerializedName("id") val id: Int,
@@ -31,7 +28,4 @@ data class MainInfo(
     @SerializedName("humidity") val humidity: Int
 )
 
-data class Wind(
-    @SerializedName("speed") val speed: Double,
-    @SerializedName("deg") val deg: Int?
-)
+data class Wind(@SerializedName("speed") val speed: Double, @SerializedName("deg") val deg: Int?)

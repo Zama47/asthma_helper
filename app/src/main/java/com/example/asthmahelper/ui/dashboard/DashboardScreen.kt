@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,12 +32,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.asthmahelper.R
-import com.example.asthmahelper.domain.model.AirQualityLevel
 import com.example.asthmahelper.domain.model.PollenLevel
 import com.example.asthmahelper.ui.components.AddMeasurementDialog
 import java.text.SimpleDateFormat
@@ -48,6 +47,7 @@ import java.util.Locale
 @Composable
 fun DashboardScreen(navController: androidx.navigation.NavController) {
     val viewModel: DashboardViewModel = hiltViewModel()
+    val locale = LocalConfiguration.current.locales[0]
     var showAddMeasurementDialog by remember { mutableStateOf(false) }
 
     val measurements by viewModel.recentMeasurements.collectAsState()
@@ -197,7 +197,7 @@ fun DashboardScreen(navController: androidx.navigation.NavController) {
                                 fontWeight = FontWeight.Medium
                             )
                             Text(
-                                text = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+                                text = SimpleDateFormat("dd.MM.yyyy HH:mm", locale)
                                     .format(Date(measurement.timestamp)),
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -224,13 +224,13 @@ private fun formatTime(msSinceMidnight: Long): String {
     return String.format(Locale.getDefault(), "%02d:%02d", minutes / 60, minutes % 60)
 }
 
-private fun color(
-    value: Float,
-    norm: com.example.asthmahelper.domain.model.BreathingNorm?
-): Color {
+private fun color(value: Float, norm: com.example.asthmahelper.domain.model.BreathingNorm?): Color {
     if (norm == null) return Color(0xFF9E9E9E)
-    return if (value < norm.minNormal || value > norm.maxNormal) Color(0xFFF44336)
-    else Color(0xFF4CAF50)
+    return if (value < norm.minNormal || value > norm.maxNormal) {
+        Color(0xFFF44336)
+    } else {
+        Color(0xFF4CAF50)
+    }
 }
 
 @Composable
@@ -242,11 +242,7 @@ private fun pollenColor(level: PollenLevel): Color = when (level) {
 }
 
 @Composable
-private fun AllergyLevelWidget(
-    level: String,
-    color: Color,
-    modifier: Modifier = Modifier
-) {
+private fun AllergyLevelWidget(level: String, color: Color, modifier: Modifier = Modifier) {
     Card(modifier = modifier) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -268,11 +264,7 @@ private fun AllergyLevelWidget(
 }
 
 @Composable
-private fun AirQualityWidget(
-    aqi: Int,
-    description: String,
-    modifier: Modifier = Modifier
-) {
+private fun AirQualityWidget(aqi: Int, description: String, modifier: Modifier = Modifier) {
     // Европейский AQI Open-Meteo: 0..100+
     val aqiColor = when {
         aqi <= 20 -> Color(0xFF4CAF50)

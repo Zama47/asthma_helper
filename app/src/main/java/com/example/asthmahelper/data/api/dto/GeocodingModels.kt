@@ -6,9 +6,7 @@ import com.google.gson.annotations.SerializedName
  * Ответ Open-Meteo Geocoding API (поиск города по названию).
  * https://open-meteo.com/en/docs/geocoding-api
  */
-data class GeocodingResponse(
-    val results: List<GeocodingResult>? = null
-)
+data class GeocodingResponse(val results: List<GeocodingResult>? = null)
 
 data class GeocodingResult(
     val name: String,

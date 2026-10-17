@@ -10,15 +10,17 @@ import com.example.asthmahelper.data.db.AppDatabase
 import com.example.asthmahelper.data.db.entity.MedicineEntity
 import com.example.asthmahelper.notification.MedicationReminderWorker
 import dagger.hilt.android.HiltAndroidApp
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
 @HiltAndroidApp
-class AsthmaHelperApplication : Application(), Configuration.Provider {
+class AsthmaHelperApplication :
+    Application(),
+    Configuration.Provider {
 
     @Inject
     lateinit var database: AppDatabase
@@ -50,22 +52,62 @@ class AsthmaHelperApplication : Application(), Configuration.Provider {
 
             dao.insertAll(
                 listOf(
-                    MedicineEntity(name = "Сальбутамол", description = "Бронхорасширяющее (ингалятор скорой помощи)", isPopular = true),
-                    MedicineEntity(name = "Будесонид", description = "Ингаляционный кортикостероид (Пульмикорт)", isPopular = true),
-                    MedicineEntity(name = "Беклометазон", description = "Ингаляционный кортикостероид", isPopular = true),
-                    MedicineEntity(name = "Флутиказон", description = "Ингаляционный кортикостероид (Фликсотид)", isPopular = true),
-                    MedicineEntity(name = "Формотерол", description = "Длительно действующий бронхорасширяющий", isPopular = true),
-                    MedicineEntity(name = "Сальметерол", description = "Длительно действующий бронхорасширяющий (Серевент)", isPopular = true),
+                    MedicineEntity(
+                        name = "Сальбутамол",
+                        description = "Бронхорасширяющее (ингалятор скорой помощи)",
+                        isPopular = true
+                    ),
+                    MedicineEntity(
+                        name = "Будесонид",
+                        description = "Ингаляционный кортикостероид (Пульмикорт)",
+                        isPopular = true
+                    ),
+                    MedicineEntity(
+                        name = "Беклометазон",
+                        description = "Ингаляционный кортикостероид",
+                        isPopular = true
+                    ),
+                    MedicineEntity(
+                        name = "Флутиказон",
+                        description = "Ингаляционный кортикостероид (Фликсотид)",
+                        isPopular = true
+                    ),
+                    MedicineEntity(
+                        name = "Формотерол",
+                        description = "Длительно действующий бронхорасширяющий",
+                        isPopular = true
+                    ),
+                    MedicineEntity(
+                        name = "Сальметерол",
+                        description = "Длительно действующий бронхорасширяющий (Серевент)",
+                        isPopular = true
+                    ),
                     MedicineEntity(name = "Ипратропий", description = "Холинолитик (Атровент)", isPopular = true),
-                    MedicineEntity(name = "Монтелукаст", description = "Антилейкотриеновый препарат (Сингуляр)", isPopular = true),
+                    MedicineEntity(
+                        name = "Монтелукаст",
+                        description = "Антилейкотриеновый препарат (Сингуляр)",
+                        isPopular = true
+                    ),
                     MedicineEntity(name = "Теофиллин", description = "Бронхорасширяющее системное", isPopular = true),
-                    MedicineEntity(name = "Преднизолон", description = "Системный кортикостероид (при обострении)", isPopular = true),
+                    MedicineEntity(
+                        name = "Преднизолон",
+                        description = "Системный кортикостероид (при обострении)",
+                        isPopular = true
+                    ),
                     MedicineEntity(name = "Лоратадин", description = "Антигистаминное (Кларитин)", isPopular = true),
                     MedicineEntity(name = "Цетиризин", description = "Антигистаминное (Зиртек)", isPopular = true),
                     MedicineEntity(name = "Фексофенадин", description = "Антигистаминное (Телфаст)", isPopular = true),
                     MedicineEntity(name = "Амброксол", description = "Муколитик (Лазолван)", isPopular = true),
-                    MedicineEntity(name = "Серетид", description = "Комбинированный: флутиказон + салметерол", isPopular = true),
-                    MedicineEntity(name = "Симбикорт", description = "Комбинированный: будесонид + формотерол", isPopular = true)
+                    MedicineEntity(
+                        name = "Серетид",
+                        description = "Комбинированный: флутиказон + салметерол",
+                        isPopular = true
+                    ),
+                    MedicineEntity(
+                        name = "Симбикорт",
+                        description = "Комбинированный: будесонид + формотерол",
+                        isPopular = true
+                    )
                 )
             )
         }

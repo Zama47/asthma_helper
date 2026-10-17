@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📥 Скачать APK
+    url: https://github.com/Zama47/asthma_helper/releases
+    about: Последние сборки и релизы
+  - name: 🔐 Политика конфиденциальности
+    url: https://github.com/Zama47/asthma_helper/blob/main/docs/privacy-policy.md
+    about: Как приложение обращается с данными
