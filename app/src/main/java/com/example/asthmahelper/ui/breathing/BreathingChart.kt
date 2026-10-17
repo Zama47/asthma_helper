@@ -54,6 +54,7 @@ fun BreathingChartWidget(
     measurements: List<Pair<Long, Float>>,
     norm: BreathingNorm? = null,
     personalBest: Float? = null,
+    percentBaseline: Float? = null,
     defaultNorm: BreathingNorm = BreathingNorm(350f, 450f, 200),
     onNormChanged: (BreathingNorm) -> Unit
 ) {
@@ -74,7 +75,8 @@ fun BreathingChartWidget(
             modifier = Modifier.fillMaxWidth(),
             measurements = measurements,
             norm = currentNorm,
-            personalBest = personalBest
+            personalBest = personalBest,
+            percentBaseline = percentBaseline
         )
     }
 
@@ -149,7 +151,8 @@ private fun ChartContainer(
     modifier: Modifier = Modifier,
     measurements: List<Pair<Long, Float>>,
     norm: BreathingNorm,
-    personalBest: Float?
+    personalBest: Float?,
+    percentBaseline: Float?
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val locale = LocalConfiguration.current.locales[0]
@@ -196,8 +199,12 @@ private fun ChartContainer(
 
                     fun yFor(value: Float): Float = plotBottom - (value / maxY) * (plotBottom - plotTop)
 
-                    val greenLower = min(norm.maxNormal * 0.8f, maxY)
-                    val yellowLower = min(norm.redZoneThreshold, greenLower)
+                    val baseline = percentBaseline ?: norm.maxNormal
+                    val greenLower = min(baseline * 0.8f, maxY)
+                    val yellowLower = min(
+                        if (percentBaseline != null) baseline * 0.5f else norm.redZoneThreshold,
+                        greenLower
+                    )
 
                     drawRect(
                         color = Zone.GREEN.color.copy(alpha = 0.10f),
@@ -387,6 +394,7 @@ fun BreathingChart(
     measurements: List<Pair<Long, Float>>,
     norm: BreathingNorm? = null,
     personalBest: Float? = null,
+    percentBaseline: Float? = null,
     onNormChanged: (BreathingNorm) -> Unit
 ) {
     BreathingChartWidget(
@@ -394,6 +402,7 @@ fun BreathingChart(
         measurements = measurements,
         norm = norm,
         personalBest = personalBest,
+        percentBaseline = percentBaseline,
         defaultNorm = BreathingNorm(350f, 450f, 200),
         onNormChanged = onNormChanged
     )
