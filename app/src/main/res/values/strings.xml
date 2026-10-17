@@ -14,4 +14,5 @@
     <string name="medication_schedule">Расписание лекарств</string>
     <string name="air_quality">Качество воздуха</string>
     <string name="allergy_level">Уровень аллергии</string>
+    <string name="widget_pef_description">Последний замер пикфлоуметрии и зона</string>
 </resources>
