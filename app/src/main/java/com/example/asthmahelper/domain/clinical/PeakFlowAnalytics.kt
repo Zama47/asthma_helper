@@ -74,6 +74,32 @@ fun variabilityLevel(percent: Float): VariabilityLevel = when {
     else -> VariabilityLevel.HIGH
 }
 
+/** Окно личного максимума по умолчанию — 14 дней (рекомендация GINA). */
+const val PERSONAL_BEST_WINDOW_DAYS = 14
+
+private const val MILLIS_PER_DAY = 24L * 60L * 60L * 1000L
+
+/**
+ * Личный максимум ПСВ: максимальный замер за последние [windowDays] дней.
+ * Возвращает null, если в окне нет замеров.
+ */
+fun personalBest(
+    measurements: List<DutyMeasurement>,
+    windowDays: Int = PERSONAL_BEST_WINDOW_DAYS,
+    now: Long = System.currentTimeMillis()
+): Float? {
+    val from = now - windowDays * MILLIS_PER_DAY
+    return measurements
+        .filter { it.timestamp in from..now }
+        .maxOfOrNull { it.value }
+}
+
+/** Процент замера от личного максимума. null, если максимум неизвестен или неположителен. */
+fun percentOfBest(value: Float, best: Float?): Float? {
+    if (best == null || best <= 0f) return null
+    return value / best * 100f
+}
+
 private fun startOfDay(timestamp: Long): Long = Calendar.getInstance().apply {
     timeInMillis = timestamp
     set(Calendar.HOUR_OF_DAY, 0)
