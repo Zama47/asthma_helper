@@ -115,11 +115,7 @@ fun zoneOfPercent(value: Float, best: Float?): Zone {
 }
 
 /** Признак начинающегося обострения: устойчивое падение ПСВ ниже обычного уровня. */
-data class ExacerbationWarning(
-    val consecutiveDays: Int,
-    val worstPercentOfBest: Float,
-    val sinceMillis: Long
-)
+data class ExacerbationWarning(val consecutiveDays: Int, val worstPercentOfBest: Float, val sinceMillis: Long)
 
 /**
  * Ищет обострение по GINA: два и более дней подряд максимальный ПСВ дня ниже

@@ -17,11 +17,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -38,11 +41,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.asthmahelper.R
+import com.example.asthmahelper.domain.clinical.actLevel
+import com.example.asthmahelper.domain.clinical.isRescueUseHigh
+import com.example.asthmahelper.domain.clinical.percentOfBest
 import com.example.asthmahelper.domain.model.PollenLevel
+import com.example.asthmahelper.ui.act.color
+import com.example.asthmahelper.ui.act.label
 import com.example.asthmahelper.ui.components.AddMeasurementDialog
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @Composable
 fun DashboardScreen(navController: androidx.navigation.NavController) {
@@ -54,6 +63,10 @@ fun DashboardScreen(navController: androidx.navigation.NavController) {
     val norm by viewModel.breathingNorm.collectAsState()
     val todayMedications by viewModel.todayMedications.collectAsState()
     val weatherData by viewModel.weatherData.collectAsState()
+    val personalBest by viewModel.personalBestValue.collectAsState()
+    val exacerbation by viewModel.exacerbation.collectAsState()
+    val rescueStats by viewModel.rescueStats.collectAsState()
+    val lastAct by viewModel.lastAct.collectAsState()
 
     Column(
         modifier = Modifier
@@ -65,6 +78,39 @@ fun DashboardScreen(navController: androidx.navigation.NavController) {
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
+
+        exacerbation?.let { warning ->
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Возможно обострение",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "ПСВ держится на ${warning.worstPercentOfBest.roundToInt()}% от личного " +
+                                "максимума ${warning.consecutiveDays} дн. подряд. Проверьте план действий " +
+                                "и свяжитесь с врачом.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -92,6 +138,60 @@ fun DashboardScreen(navController: androidx.navigation.NavController) {
                 description = weatherData.airQuality?.level?.label ?: "Нет данных",
                 modifier = Modifier.weight(1f)
             )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            StatWidget(
+                title = "Личный максимум",
+                value = personalBest?.let { "${it.toInt()} л/мин" } ?: "—",
+                caption = "за 14 дней",
+                color = Color(0xFF3949AB),
+                modifier = Modifier.weight(1f)
+            )
+            StatWidget(
+                title = "Спасательный ингалятор",
+                value = "${rescueStats.today} / ${rescueStats.thisWeek}",
+                caption = "сегодня / за неделю",
+                color = if (isRescueUseHigh(rescueStats.thisWeek)) Color(0xFFF44336) else Color(0xFF4CAF50),
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            val act = lastAct
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = "Контроль астмы (ACT)", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    if (act != null) {
+                        val level = actLevel(act.total)
+                        Text(
+                            text = "${act.total} / 25 · ${level.label}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = level.color,
+                            fontWeight = FontWeight.Medium
+                        )
+                    } else {
+                        Text(
+                            text = "Пройдите тест из 5 вопросов",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+                OutlinedButton(onClick = { navController.navigate("act") }) {
+                    Text(if (act == null) "Пройти" else "Обновить")
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -150,12 +250,12 @@ fun DashboardScreen(navController: androidx.navigation.NavController) {
 
         // Сводка
         val last = measurements.firstOrNull()
+        val lastPercent = last?.let { percentOfBest(it.value, personalBest) }
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Последний замер: ${
-                        last?.value?.toInt()?.toString() ?: "—"
-                    } л/мин",
+                    text = "Последний замер: ${last?.value?.toInt()?.toString() ?: "—"} л/мин" +
+                        (lastPercent?.let { " (${it.roundToInt()}% от максимума)" } ?: ""),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
@@ -290,6 +390,23 @@ private fun AirQualityWidget(aqi: Int, description: String, modifier: Modifier =
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = "AQI $aqi", style = MaterialTheme.typography.titleMedium)
             Text(text = description, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+private fun StatWidget(title: String, value: String, caption: String, color: Color, modifier: Modifier = Modifier) {
+    Card(modifier = modifier) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(text = title, style = MaterialTheme.typography.bodySmall)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                color = color,
+                fontWeight = FontWeight.Bold
+            )
+            Text(text = caption, style = MaterialTheme.typography.bodySmall)
         }
     }
 }

@@ -2,12 +2,14 @@ package com.example.asthmahelper.data.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.example.asthmahelper.data.db.dao.ActResultDao
 import com.example.asthmahelper.data.db.dao.AsthmaAttackLogDao
 import com.example.asthmahelper.data.db.dao.BreathingNormDao
 import com.example.asthmahelper.data.db.dao.DutyMeasurementDao
 import com.example.asthmahelper.data.db.dao.MedicationLogDao
 import com.example.asthmahelper.data.db.dao.MedicationScheduleDao
 import com.example.asthmahelper.data.db.dao.MedicineDao
+import com.example.asthmahelper.data.db.entity.ActResultEntity
 import com.example.asthmahelper.data.db.entity.AsthmaAttackLogEntity
 import com.example.asthmahelper.data.db.entity.BreathingNormEntity
 import com.example.asthmahelper.data.db.entity.DutyMeasurementEntity
@@ -21,7 +23,7 @@ import com.example.asthmahelper.data.db.entity.MedicineEntity
  * При изменении entities не забыть: bump версии + добавить Migration + запустить сборку,
  * чтобы сгенерировался новый schemas/<version>.json.
  */
-const val APP_DATABASE_VERSION = 3
+const val APP_DATABASE_VERSION = 4
 
 @Database(
     entities = [
@@ -30,7 +32,8 @@ const val APP_DATABASE_VERSION = 3
         MedicationScheduleEntity::class,
         MedicationLogEntity::class,
         BreathingNormEntity::class,
-        AsthmaAttackLogEntity::class
+        AsthmaAttackLogEntity::class,
+        ActResultEntity::class
     ],
     version = APP_DATABASE_VERSION,
     exportSchema = true
@@ -42,4 +45,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun medicationLogDao(): MedicationLogDao
     abstract fun breathingNormDao(): BreathingNormDao
     abstract fun asthmaAttackLogDao(): AsthmaAttackLogDao
+    abstract fun actResultDao(): ActResultDao
 }

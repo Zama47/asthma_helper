@@ -5,6 +5,12 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.asthmahelper.data.api.WeatherApiService
+import com.example.asthmahelper.domain.clinical.ExacerbationWarning
+import com.example.asthmahelper.domain.clinical.RescueDoseStats
+import com.example.asthmahelper.domain.clinical.detectExacerbation
+import com.example.asthmahelper.domain.clinical.personalBest
+import com.example.asthmahelper.domain.clinical.rescueDoseStats
+import com.example.asthmahelper.domain.model.ActResult
 import com.example.asthmahelper.domain.model.AirQualityInfo
 import com.example.asthmahelper.domain.model.BreathingNorm
 import com.example.asthmahelper.domain.model.DutyMeasurement
@@ -13,6 +19,8 @@ import com.example.asthmahelper.domain.model.MedicationSchedule
 import com.example.asthmahelper.domain.model.Plant
 import com.example.asthmahelper.domain.model.PollenInfo
 import com.example.asthmahelper.domain.model.PollenLevel
+import com.example.asthmahelper.domain.repository.ActResultRepository
+import com.example.asthmahelper.domain.repository.AsthmaAttackLogRepository
 import com.example.asthmahelper.domain.repository.BreathingNormRepository
 import com.example.asthmahelper.domain.repository.DutyMeasurementRepository
 import com.example.asthmahelper.domain.repository.MedicationLogRepository
@@ -32,6 +40,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -44,6 +53,8 @@ class DashboardViewModel @Inject constructor(
     scheduleRepository: MedicationScheduleRepository,
     private val logRepository: MedicationLogRepository,
     breathingNormRepository: BreathingNormRepository,
+    attackLogRepository: AsthmaAttackLogRepository,
+    actResultRepository: ActResultRepository,
     private val addMeasurementUseCase: AddMeasurementUseCase,
     private val toggleTakenUseCase: ToggleMedicationTakenUseCase,
     private val weatherApi: WeatherApiService,
@@ -98,6 +109,26 @@ class DashboardViewModel @Inject constructor(
     val breathingNorm: StateFlow<BreathingNorm?> = flow {
         emit(breathingNormRepository.getBreathingNorm())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Личный максимум ПСВ за последние 14 дней. */
+    val personalBestValue: StateFlow<Float?> = dutyMeasurementRepository.getAllMeasurements()
+        .map { personalBest(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Признак начинающегося обострения: падение ПСВ более чем на 20% два дня подряд. */
+    val exacerbation: StateFlow<ExacerbationWarning?> = dutyMeasurementRepository.getAllMeasurements()
+        .map { detectExacerbation(it, personalBest(it)) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Отмеченные дозы спасательного ингалятора за сегодня и за неделю. */
+    val rescueStats: StateFlow<RescueDoseStats> = attackLogRepository.getAllAttacks()
+        .map { rescueDoseStats(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RescueDoseStats(0, 0))
+
+    /** Последний пройденный опросник ACT. */
+    val lastAct: StateFlow<ActResult?> = actResultRepository.getAllResults()
+        .map { it.firstOrNull() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** Приёмы на сегодня с отметками (лог ищется по конкретному расписанию). */
     val todayMedications: StateFlow<List<TodayMedicationUiItem>> =
