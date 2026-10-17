@@ -24,7 +24,7 @@ hilt = "2.60.1"
 work = "2.9.1"
 
 # Coil
-coil = "2.6.0"
+coil = "2.7.0"
 
 # Location
 playServicesLocation = "21.3.0"
