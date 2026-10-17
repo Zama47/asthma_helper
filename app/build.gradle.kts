@@ -69,9 +69,9 @@ android {
 // не читает метаданные stdlib 2.4.x, а какая-то зависимость тянет 2.4.10
 configurations.all {
     resolutionStrategy {
-        force("org.jetbrains.kotlin:kotlin-stdlib:2.2.0")
-        force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.0")
-        force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.2.0")
+        force("org.jetbrains.kotlin:kotlin-stdlib:2.4.21")
+        force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.4.21")
+        force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.4.21")
     }
 }
 
