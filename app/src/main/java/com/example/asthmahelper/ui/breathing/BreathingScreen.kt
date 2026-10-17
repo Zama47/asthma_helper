@@ -45,15 +45,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.asthmahelper.domain.clinical.DailyVariability
+import com.example.asthmahelper.domain.clinical.VariabilityLevel
+import com.example.asthmahelper.domain.clinical.Zone
+import com.example.asthmahelper.domain.clinical.computeDailyVariability
+import com.example.asthmahelper.domain.clinical.variabilityLevel
+import com.example.asthmahelper.domain.clinical.zoneOf
 import com.example.asthmahelper.domain.model.BreathingNorm
-import com.example.asthmahelper.domain.model.DutyMeasurement
 import com.example.asthmahelper.ui.components.AddMeasurementWithDateDialog
 import com.example.asthmahelper.ui.components.SetBreathingNormDialog
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import kotlin.math.abs
 
 private enum class Period(val label: String, val days: Int) {
     DAY("День", 1),
@@ -61,67 +65,6 @@ private enum class Period(val label: String, val days: Int) {
     MONTH("Месяц", 30),
     YEAR("Год", 365)
 }
-
-/** Три зоны нормы по классической пикфлоуметрии. */
-enum class Zone(val label: String, val color: Color) {
-    GREEN("Зелёная", Color(0xFF4CAF50)),
-    YELLOW("Жёлтая", Color(0xFFFFC107)),
-    RED("Красная", Color(0xFFF44336))
-}
-
-/** Определяет зону замера по норме. */
-fun zoneOf(value: Float, norm: BreathingNorm?): Zone {
-    if (norm == null) return Zone.GREEN
-    return when {
-        value >= norm.maxNormal * 0.8f -> Zone.GREEN // 80–100% от максимума
-        value >= norm.redZoneThreshold -> Zone.YELLOW // 50–80%
-        else -> Zone.RED // < 50%
-    }
-}
-
-/** Результат расчёта суточной вариабельности за одни сутки. */
-private data class DailyVariability(
-    val dayMillis: Long,
-    val morning: Float,
-    val morningTime: Long,
-    val evening: Float,
-    val eveningTime: Long,
-    val max: Float,
-    val percent: Float
-)
-
-private fun startOfDay(timestamp: Long): Long = Calendar.getInstance().apply {
-    timeInMillis = timestamp
-    set(Calendar.HOUR_OF_DAY, 0)
-    set(Calendar.MINUTE, 0)
-    set(Calendar.SECOND, 0)
-    set(Calendar.MILLISECOND, 0)
-}.timeInMillis
-
-/**
- * Формула суточной вариабельности:
- * Вариабельность (%) = (Вечернее − Утреннее) / Максимум за сутки × 100 %
- */
-private fun computeDailyVariability(measurements: List<DutyMeasurement>): DailyVariability? = measurements
-    .groupBy { startOfDay(it.timestamp) }
-    .mapNotNull { (day, list) ->
-        if (list.size < 2) return@mapNotNull null
-        val sorted = list.sortedBy { it.timestamp }
-        val max = sorted.maxOf { it.value }
-        if (max <= 0f) return@mapNotNull null
-        val first = sorted.first()
-        val last = sorted.last()
-        DailyVariability(
-            dayMillis = day,
-            morning = first.value,
-            morningTime = first.timestamp,
-            evening = last.value,
-            eveningTime = last.timestamp,
-            max = max,
-            percent = abs(last.value - first.value) / max * 100f
-        )
-    }
-    .maxByOrNull { it.dayMillis }
 
 @Composable
 fun BreathingScreen(navController: androidx.navigation.NavController) {
@@ -392,10 +335,10 @@ private fun VariabilityCard(variability: DailyVariability?) {
 
 private data class VariabilityVerdict(val text: String, val color: Color)
 
-private fun variabilityVerdict(percent: Float): VariabilityVerdict = when {
-    percent < 15f -> VariabilityVerdict("Норма: бронхи стабильны", Zone.GREEN.color)
-    percent <= 20f -> VariabilityVerdict("Граница нормы: наблюдайте за состоянием", Zone.YELLOW.color)
-    else -> VariabilityVerdict("Повышенная вариабельность: бронхи нестабильны", Zone.RED.color)
+private fun variabilityVerdict(percent: Float): VariabilityVerdict = when (variabilityLevel(percent)) {
+    VariabilityLevel.NORMAL -> VariabilityVerdict("Норма: бронхи стабильны", Zone.GREEN.color)
+    VariabilityLevel.BORDERLINE -> VariabilityVerdict("Граница нормы: наблюдайте за состоянием", Zone.YELLOW.color)
+    VariabilityLevel.HIGH -> VariabilityVerdict("Повышенная вариабельность: бронхи нестабильны", Zone.RED.color)
 }
 
 @Composable

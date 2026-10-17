@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
+import com.example.asthmahelper.domain.clinical.Zone
 import com.example.asthmahelper.domain.model.BreathingNorm
 import kotlin.math.ceil
 import kotlin.math.max
