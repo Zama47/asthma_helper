@@ -59,6 +59,7 @@ import com.example.asthmahelper.domain.clinical.variabilityLevel
 import com.example.asthmahelper.domain.clinical.zoneOf
 import com.example.asthmahelper.domain.clinical.zoneOfPercent
 import com.example.asthmahelper.domain.export.buildPeakFlowExportCsv
+import com.example.asthmahelper.domain.export.dailyAggregates
 import com.example.asthmahelper.domain.model.BreathingNorm
 import com.example.asthmahelper.domain.model.DutyMeasurement
 import com.example.asthmahelper.ui.components.AddMeasurementWithDateDialog
@@ -100,6 +101,8 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
     }
 
     val variability = remember(filtered) { computeDailyVariability(filtered) }
+
+    val rememberedDailyFlows = remember(filtered) { dailyAggregates(filtered) }
 
     val personalBestValue = remember(measurements) { personalBest(measurements) }
 
@@ -178,6 +181,13 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
 
         item {
             VariabilityCard(variability = variability)
+        }
+
+        item {
+            PeakFlowBarsChart(
+                days = rememberedDailyFlows,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
         if (norm != null && !useBestZones) {
