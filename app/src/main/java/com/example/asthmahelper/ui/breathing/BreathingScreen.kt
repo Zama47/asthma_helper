@@ -49,6 +49,8 @@ import com.example.asthmahelper.domain.clinical.DailyVariability
 import com.example.asthmahelper.domain.clinical.VariabilityLevel
 import com.example.asthmahelper.domain.clinical.Zone
 import com.example.asthmahelper.domain.clinical.computeDailyVariability
+import com.example.asthmahelper.domain.clinical.percentOfBest
+import com.example.asthmahelper.domain.clinical.personalBest
 import com.example.asthmahelper.domain.clinical.variabilityLevel
 import com.example.asthmahelper.domain.clinical.zoneOf
 import com.example.asthmahelper.domain.model.BreathingNorm
@@ -58,6 +60,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 private enum class Period(val label: String, val days: Int) {
     DAY("День", 1),
@@ -87,6 +90,8 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
     }
 
     val variability = remember(filtered) { computeDailyVariability(filtered) }
+
+    val personalBestValue = remember(measurements) { personalBest(measurements) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -135,6 +140,7 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
             BreathingChart(
                 measurements = filtered.map { it.timestamp to it.value },
                 norm = norm,
+                personalBest = personalBestValue,
                 onNormChanged = { newNorm -> viewModel.setBreathingNorm(newNorm) },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -158,6 +164,7 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
         }
 
         items(measurements.sortedByDescending { it.timestamp }) { measurement ->
+            val sharePercent = percentOfBest(measurement.value, personalBestValue)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -174,7 +181,8 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "${measurement.value.toInt()} л/мин",
+                            text = "${measurement.value.toInt()} л/мин" +
+                                (sharePercent?.let { "  ·  ${it.roundToInt()}% от максимума" } ?: ""),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium
                         )
