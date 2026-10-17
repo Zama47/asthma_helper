@@ -63,6 +63,15 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    // Схемы Room кладём в assets androidTest, чтобы MigrationTestHelper их видел.
+    sourceSets {
+        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    }
+}
+
+// Экспорт схемы Room: build/schemas → app/schemas (в git), основа для тестов миграций.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 // Принудительно фиксируем stdlib: встроенный компилятор AGP 9 (Kotlin 2.2)
@@ -130,4 +139,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.room.testing)
 }

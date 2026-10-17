@@ -5,9 +5,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.asthmahelper.data.api.WeatherApiService
+import com.example.asthmahelper.data.db.ALL_MIGRATIONS
 import com.example.asthmahelper.data.db.AppDatabase
 import com.example.asthmahelper.data.repository.AsthmaAttackLogRepositoryImpl
 import com.example.asthmahelper.data.repository.BreathingNormRepositoryImpl
@@ -36,22 +35,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 /** DataStore с настройками погоды (выбранный город). Один экземпляр на процесс. */
 private val Context.weatherDataStore by preferencesDataStore(name = "weather_settings")
 
-/** v1 → v2: таблица календаря приступов астмы. */
-private val MIGRATION_1_2 = object : Migration(1, 2) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
-            "CREATE TABLE IF NOT EXISTS `asthma_attacks` (" +
-                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                "`timestamp` INTEGER NOT NULL, " +
-                "`severity` TEXT NOT NULL, " +
-                "`rescueDoses` INTEGER NOT NULL, " +
-                "`triggers` TEXT NOT NULL, " +
-                "`location` TEXT, " +
-                "`notes` TEXT)"
-        )
-    }
-}
-
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
@@ -63,7 +46,7 @@ object AppModule {
         AppDatabase::class.java,
         "asthma_helper_db"
     )
-        .addMigrations(MIGRATION_1_2)
+        .addMigrations(*ALL_MIGRATIONS)
         .build()
 
     @Provides

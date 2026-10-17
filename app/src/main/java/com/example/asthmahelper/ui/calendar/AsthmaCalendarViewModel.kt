@@ -169,10 +169,10 @@ fun startOfDayMillis(timestamp: Long): Long = Calendar.getInstance().apply {
  * Дней без приступов подряд, считая назад от сегодняшнего дня.
  * 0 — приступ был сегодня, -1 — приступов не записано вовсе.
  */
-fun calculateStreak(attacks: List<AsthmaAttackLog>): Int {
+fun calculateStreak(attacks: List<AsthmaAttackLog>, now: Long = System.currentTimeMillis()): Int {
     if (attacks.isEmpty()) return -1
     val lastAttackDay = startOfDayMillis(attacks.maxOf { it.timestamp })
-    val today = startOfDayMillis(System.currentTimeMillis())
+    val today = startOfDayMillis(now)
     if (lastAttackDay >= today) return 0
     return ((today - lastAttackDay) / MILLIS_PER_DAY).toInt()
 }

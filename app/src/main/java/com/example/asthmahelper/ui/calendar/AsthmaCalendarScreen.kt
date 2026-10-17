@@ -63,7 +63,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.asthmahelper.domain.model.AsthmaAttackLog
 import com.example.asthmahelper.domain.model.AttackSeverity
 import java.text.SimpleDateFormat
@@ -392,7 +392,7 @@ private fun StreakCard(streak: Int, currentMonthCount: Int, previousMonthCount: 
 @Composable
 private fun MonthHeader(month: MonthYear, onPrev: () -> Unit, onNext: () -> Unit) {
     val title = remember(month) {
-        SimpleDateFormat("LLLL yyyy", Locale("ru"))
+        SimpleDateFormat("LLLL yyyy", Locale.forLanguageTag("ru"))
             .format(Date(monthStartMillis(month)))
             .replaceFirstChar { it.uppercase() }
     }

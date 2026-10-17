@@ -36,9 +36,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.asthmahelper.R
 import com.example.asthmahelper.domain.model.Medicine
+import java.util.Locale
 
 @Composable
 fun MedicationsScreen(navController: androidx.navigation.NavController) {
@@ -148,7 +149,7 @@ fun MedicationsScreen(navController: androidx.navigation.NavController) {
 
 private fun formatMinutes(msSinceMidnight: Long): String {
     val totalMinutes = msSinceMidnight / 60_000
-    return String.format("%02d:%02d", totalMinutes / 60, totalMinutes % 60)
+    return String.format(Locale.getDefault(), "%02d:%02d", totalMinutes / 60, totalMinutes % 60)
 }
 
 private fun daysLabel(daysOfWeek: String): String {

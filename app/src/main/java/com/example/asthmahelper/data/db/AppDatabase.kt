@@ -15,6 +15,14 @@ import com.example.asthmahelper.data.db.entity.MedicationLogEntity
 import com.example.asthmahelper.data.db.entity.MedicationScheduleEntity
 import com.example.asthmahelper.data.db.entity.MedicineEntity
 
+/**
+ * Версия схемы БД. Единственный источник правды: используется в @Database(version = ...)
+ * и в тесте, который следит за тем, чтобы для каждой версии была экспортирована схема.
+ * При изменении entities не забыть: bump версии + добавить Migration + запустить сборку,
+ * чтобы сгенерировался новый schemas/<version>.json.
+ */
+const val APP_DATABASE_VERSION = 3
+
 @Database(
     entities = [
         DutyMeasurementEntity::class,
@@ -24,8 +32,8 @@ import com.example.asthmahelper.data.db.entity.MedicineEntity
         BreathingNormEntity::class,
         AsthmaAttackLogEntity::class
     ],
-    version = 2,
-    exportSchema = false
+    version = APP_DATABASE_VERSION,
+    exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun dutyMeasurementDao(): DutyMeasurementDao
