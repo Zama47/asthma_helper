@@ -231,26 +231,15 @@ app/src/main/java/com/example/asthmahelper/
 
 ## 🎬 Демонстрация работы
 
-<!--
-  ЗАМЕНИТЬ на свежие скриншоты 0.2b.
-  Рекомендуемый набор кадров:
-    1. Главный экран (плитки личного максимума и доз, карточка ACT, баннер обострения)
-    2. Экран «Дыхание» — график с зонами и линией личного максимума
-    3. Диаграмма «Утро и вечер по дням»
-    4. Опросник ACT
-    5. Виджет домашнего экрана (три кнопки)
-    6. Экспорт CSV — диалог «Поделиться»
-    7. Погода: пыльца и качество воздуха
-    8. Календарь приступов — тепловая карта месяца
--->
+Скриншоты версии **0.2b** (исходники — в папке [`docs/screenshots/`](docs/screenshots)):
 
-| Главный экран | Добавление записи ПФМ | График пикфлоуметрии |
+| Главный экран | Погода: качество воздуха и пыльца | Дыхание: график, зоны и экспорт |
 |:---:|:---:|:---:|
-| <img src="https://github.com/user-attachments/assets/266d104a-d1d0-476c-a0cd-423802cd076a" width="250" /> | <img src="https://github.com/user-attachments/assets/bca4eac4-c32c-4959-908f-2107e6e443d3" width="250" /> | <img src="https://github.com/user-attachments/assets/cedaf7e0-01c3-476a-9035-0ba5e3702262" width="250" /> |
+| <img src="docs/screenshots/dashboard.jpg" width="250" /> | <img src="docs/screenshots/weather.jpg" width="250" /> | <img src="docs/screenshots/breathing.jpg" width="250" /> |
 
-| Добавление лекарства | Окно лекарств | Погода |
+| Календарь приступов | Лекарства | Виджет домашнего экрана |
 |:---:|:---:|:---:|
-| <img src="https://github.com/user-attachments/assets/3f2c1299-02a9-43e6-b5f8-b20e4f9fd7b4" width="250" /> | <img src="https://github.com/user-attachments/assets/79fd58af-a277-452f-8d71-6de247344765" width="250" /> | <img src="https://github.com/user-attachments/assets/cf037f96-0dde-4af9-964b-211872ee8c0f" width="250" /> |
+| <img src="docs/screenshots/calendar.jpg" width="250" /> | <img src="docs/screenshots/medications.jpg" width="250" /> | <img src="docs/screenshots/widget.jpg" width="250" /> |
 
 ---
 
