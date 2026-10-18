@@ -16,7 +16,7 @@
 
 - Точные координаты устройства используются **исключительно** для отображения текущей погоды, качества воздуха и уровня пыльцы по вашему местоположению.
 - Координаты передаются в открытые сторонние сервисы **только для целей геокодирования и метеоданных** и не связаны с вашей личностью:
-  - [Open-Meteo](https://open-meteo.com/) (запросы к `api.open-meteo.com`, `air-quality-api.open-meteo.com`, `geocoding-api.open-meteo.com`);
+  - [Open-Meteo](https://open-meteo.com/) (запросы к `api.open-meteo.com` и резервному `historical-forecast-api.open-meteo.com`, а также `air-quality-api.open-meteo.com`, `geocoding-api.open-meteo.com`);
   - [BigDataCloud](https://www.bigdatacloud.net/) (обратное геокодирование — получение названия населённого пункта).
 - Вы можете не предоставлять доступ к геолокации и вместо этого выбрать город вручную в настройках Приложения.
 

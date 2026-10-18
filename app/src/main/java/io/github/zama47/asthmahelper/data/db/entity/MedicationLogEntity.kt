@@ -1,0 +1,26 @@
+package io.github.zama47.asthmahelper.data.db.entity
+
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+@Entity(
+    tableName = "medication_logs",
+    foreignKeys = [
+        ForeignKey(
+            entity = MedicationScheduleEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["scheduleId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index(value = ["scheduleId"])]
+)
+data class MedicationLogEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val scheduleId: Long,
+    val date: Long, // timestamp for the date
+    val taken: Boolean
+)
