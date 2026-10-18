@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
 import com.example.asthmahelper.MainActivity
@@ -46,25 +47,30 @@ class AsthmaWidgetProvider : AppWidgetProvider() {
     lateinit var toggleMedicationTaken: ToggleMedicationTakenUseCase
 
     override fun onReceive(context: Context, intent: Intent) {
+        // super обязателен: Hilt инжектит зависимости именно в сгенерированной
+        // базовой реализации onReceive — только после этого поля @Inject готовы.
+        super.onReceive(context, intent)
+
         when (intent.action) {
-            ACTION_LOG_ATTACK -> {
-                runThenRefresh(context) { logAttack() }
-                return
-            }
+            ACTION_LOG_ATTACK -> runThenRefresh(context) { logAttack() }
             ACTION_TOGGLE_MEDICATION -> {
                 val taken = intent.getBooleanExtra(EXTRA_TAKEN, false)
                 runThenRefresh(context) { setAllMedicationsTaken(taken) }
-                return
             }
         }
-        super.onReceive(context, intent)
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         val pendingResult = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
-                val views = buildViews(context, loadState())
+                // Даже если чтение из БД упадёт, кнопки должны остаться рабочими.
+                val state = runCatching { loadState() }
+                    .getOrElse {
+                        Log.w(TAG, "Не удалось прочитать состояние для виджета", it)
+                        WidgetState(hasMedicationsToday = false, allTaken = false)
+                    }
+                val views = buildViews(context, state)
                 for (widgetId in appWidgetIds) {
                     appWidgetManager.updateAppWidget(widgetId, views)
                 }
@@ -84,8 +90,10 @@ class AsthmaWidgetProvider : AppWidgetProvider() {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
                 block()
+            } catch (t: Throwable) {
+                Log.w(TAG, "Действие виджета не выполнено", t)
             } finally {
-                refresh(context)
+                runCatching { refresh(context) }
                 pendingResult.finish()
             }
         }
@@ -137,16 +145,20 @@ class AsthmaWidgetProvider : AppWidgetProvider() {
     private fun buildViews(context: Context, state: WidgetState): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_quick_actions)
 
-        views.setOnClickPendingIntent(R.id.widget_btn_attack, logAttackIntent(context))
-        views.setOnClickPendingIntent(R.id.widget_btn_pef, addMeasurementIntent(context))
+        val attackIntent = logAttackIntent(context)
+        views.setOnClickPendingIntent(R.id.widget_btn_attack, attackIntent)
+        views.setOnClickPendingIntent(R.id.widget_btn_attack_icon, attackIntent)
+
+        val addIntent = addMeasurementIntent(context)
+        views.setOnClickPendingIntent(R.id.widget_btn_pef, addIntent)
+        views.setOnClickPendingIntent(R.id.widget_btn_pef_icon, addIntent)
 
         // Кнопка лекарств активна только если на сегодня есть приёмы.
         if (state.hasMedicationsToday) {
-            views.setOnClickPendingIntent(
-                R.id.widget_btn_medication,
-                toggleMedicationIntent(context, !state.allTaken)
-            )
+            val medIntent = toggleMedicationIntent(context, !state.allTaken)
+            MEDICATION_CLICK_IDS.forEach { views.setOnClickPendingIntent(it, medIntent) }
         }
+
         views.setViewVisibility(
             R.id.widget_med_bg_taken,
             if (state.allTaken) View.VISIBLE else View.GONE
@@ -217,6 +229,7 @@ class AsthmaWidgetProvider : AppWidgetProvider() {
     private data class WidgetState(val hasMedicationsToday: Boolean, val allTaken: Boolean)
 
     companion object {
+        private const val TAG = "AsthmaWidget"
         private const val ACTION_LOG_ATTACK = "com.example.asthmahelper.widget.action.LOG_ATTACK"
         private const val ACTION_TOGGLE_MEDICATION =
             "com.example.asthmahelper.widget.action.TOGGLE_MEDICATION"
@@ -225,6 +238,14 @@ class AsthmaWidgetProvider : AppWidgetProvider() {
         private const val REQUEST_ADD_MEASUREMENT = 1
         private const val REQUEST_MEDICATION = 3
         private const val ATTACK_DEBOUNCE_MS = 3_000L
+
+        /** Все виды, по которым должен срабатывать тап по кнопке лекарства. */
+        private val MEDICATION_CLICK_IDS = intArrayOf(
+            R.id.widget_btn_medication,
+            R.id.widget_med_bg_pending,
+            R.id.widget_med_bg_taken,
+            R.id.widget_med_icon
+        )
 
         /** Защита от случайного двойного тапа по «приступу». */
         private var lastAttackTimestamp = 0L
