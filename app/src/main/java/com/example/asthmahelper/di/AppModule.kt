@@ -8,12 +8,14 @@ import androidx.room.Room
 import com.example.asthmahelper.data.api.WeatherApiService
 import com.example.asthmahelper.data.db.ALL_MIGRATIONS
 import com.example.asthmahelper.data.db.AppDatabase
+import com.example.asthmahelper.data.repository.ActResultRepositoryImpl
 import com.example.asthmahelper.data.repository.AsthmaAttackLogRepositoryImpl
 import com.example.asthmahelper.data.repository.BreathingNormRepositoryImpl
 import com.example.asthmahelper.data.repository.DutyMeasurementRepositoryImpl
 import com.example.asthmahelper.data.repository.MedicationLogRepositoryImpl
 import com.example.asthmahelper.data.repository.MedicationScheduleRepositoryImpl
 import com.example.asthmahelper.data.repository.MedicineRepositoryImpl
+import com.example.asthmahelper.domain.repository.ActResultRepository
 import com.example.asthmahelper.domain.repository.AsthmaAttackLogRepository
 import com.example.asthmahelper.domain.repository.BreathingNormRepository
 import com.example.asthmahelper.domain.repository.DutyMeasurementRepository
@@ -77,6 +79,10 @@ object AppModule {
     @Singleton
     fun provideBreathingNormRepository(db: AppDatabase): BreathingNormRepository =
         BreathingNormRepositoryImpl(db.breathingNormDao())
+
+    @Provides
+    @Singleton
+    fun provideActResultRepository(db: AppDatabase): ActResultRepository = ActResultRepositoryImpl(db.actResultDao())
 
     @Provides
     @Singleton

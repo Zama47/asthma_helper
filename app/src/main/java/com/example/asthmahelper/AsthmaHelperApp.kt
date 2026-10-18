@@ -3,10 +3,12 @@ package com.example.asthmahelper
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.asthmahelper.ui.act.ActScreen
 import com.example.asthmahelper.ui.breathing.BreathingScreen
 import com.example.asthmahelper.ui.calendar.AsthmaCalendarScreen
 import com.example.asthmahelper.ui.components.BottomNavigationBar
@@ -15,8 +17,15 @@ import com.example.asthmahelper.ui.medications.MedicationsScreen
 import com.example.asthmahelper.ui.weather.WeatherScreen
 
 @Composable
-fun AsthmaHelperApp() {
+fun AsthmaHelperApp(startAddMeasurement: Boolean = false, onStartAddMeasurementHandled: () -> Unit = {}) {
     val navController = rememberNavController()
+
+    // Запрос из виджета: перейти на главную и открыть диалог добавления замера.
+    LaunchedEffect(startAddMeasurement) {
+        if (startAddMeasurement) {
+            navController.navigate("dashboard") { launchSingleTop = true }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -28,11 +37,26 @@ fun AsthmaHelperApp() {
             startDestination = "dashboard",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("dashboard") { DashboardScreen(navController) }
+            composable("dashboard") {
+                DashboardScreen(
+                    navController = navController,
+                    startWithAddMeasurement = startAddMeasurement,
+                    onStartAddMeasurementHandled = onStartAddMeasurementHandled
+                )
+            }
             composable("breathing") { BreathingScreen(navController) }
             composable("medications") { MedicationsScreen(navController) }
             composable("calendar") { AsthmaCalendarScreen(navController) }
             composable("weather") { WeatherScreen(navController) }
+            composable("act") {
+                ActScreen(
+                    onClose = {
+                        if (!navController.popBackStack()) {
+                            navController.navigate("dashboard")
+                        }
+                    }
+                )
+            }
         }
     }
 }

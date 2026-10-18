@@ -1,5 +1,7 @@
 package com.example.asthmahelper.domain.clinical
 
+import com.example.asthmahelper.domain.model.AsthmaAttackLog
+import com.example.asthmahelper.domain.model.AttackSeverity
 import com.example.asthmahelper.domain.model.BreathingNorm
 import com.example.asthmahelper.domain.model.DutyMeasurement
 import java.util.Calendar
@@ -126,6 +128,90 @@ class PeakFlowAnalyticsTest {
         assertNull(percentOfBest(400f, null))
         assertNull(percentOfBest(400f, 0f))
     }
+
+    @Test
+    fun zoneOfPercent_usesGinaThresholds() {
+        assertEquals(Zone.GREEN, zoneOfPercent(400f, 500f))
+        assertEquals(Zone.YELLOW, zoneOfPercent(399f, 500f))
+        assertEquals(Zone.YELLOW, zoneOfPercent(250f, 500f))
+        assertEquals(Zone.RED, zoneOfPercent(249f, 500f))
+    }
+
+    @Test
+    fun zoneOfPercent_isGreenWithoutBest() {
+        assertEquals(Zone.GREEN, zoneOfPercent(100f, null))
+    }
+
+    @Test
+    fun exacerbation_isNullWithoutBest() {
+        assertNull(detectExacerbation(emptyList(), null, now = at(2024, 0, 15, 12)))
+    }
+
+    @Test
+    fun exacerbation_detectsConsecutiveDaysBelowThreshold() {
+        val now = at(2024, 0, 15, 18)
+        val data = listOf(
+            measurement(500f, at(2024, 0, 13, 8)),
+            measurement(380f, at(2024, 0, 14, 8)),
+            measurement(370f, at(2024, 0, 15, 8))
+        )
+
+        val warning = detectExacerbation(data, best = 500f, now = now)!!
+
+        assertEquals(2, warning.consecutiveDays)
+        assertEquals(74f, warning.worstPercentOfBest, 0.001f)
+        assertEquals(at(2024, 0, 14, 0), warning.sinceMillis)
+    }
+
+    @Test
+    fun exacerbation_isNullForSingleBadDay() {
+        val now = at(2024, 0, 15, 18)
+        val data = listOf(
+            measurement(500f, at(2024, 0, 14, 8)),
+            measurement(300f, at(2024, 0, 15, 8))
+        )
+
+        assertNull(detectExacerbation(data, best = 500f, now = now))
+    }
+
+    @Test
+    fun exacerbation_isNullForStaleData() {
+        val now = at(2024, 0, 15, 18)
+        val data = listOf(
+            measurement(300f, at(2024, 0, 5, 8)),
+            measurement(300f, at(2024, 0, 6, 8))
+        )
+
+        assertNull(detectExacerbation(data, best = 500f, now = now))
+    }
+
+    @Test
+    fun rescueDoseStats_sumsTodayAndWeek() {
+        val now = at(2024, 0, 15, 18)
+        val attacks = listOf(
+            attack(2, at(2024, 0, 15, 9)),
+            attack(3, at(2024, 0, 13, 9)),
+            attack(4, at(2024, 0, 1, 9))
+        )
+
+        val stats = rescueDoseStats(attacks, now = now)
+
+        assertEquals(2, stats.today)
+        assertEquals(5, stats.thisWeek)
+    }
+
+    @Test
+    fun isRescueUseHigh_threshold() {
+        assertEquals(false, isRescueUseHigh(7))
+        assertEquals(true, isRescueUseHigh(8))
+    }
+
+    private fun attack(doses: Int, timestamp: Long) = AsthmaAttackLog(
+        rescueDoses = doses,
+        timestamp = timestamp,
+        severity = AttackSeverity.LOW,
+        triggers = emptyList()
+    )
 
     private fun measurement(value: Float, timestamp: Long) = DutyMeasurement(value = value, timestamp = timestamp)
 

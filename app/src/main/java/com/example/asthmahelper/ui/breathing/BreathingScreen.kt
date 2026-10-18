@@ -1,5 +1,7 @@
 package com.example.asthmahelper.ui.breathing
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -41,9 +43,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.asthmahelper.domain.clinical.DailyVariability
 import com.example.asthmahelper.domain.clinical.VariabilityLevel
@@ -53,9 +57,14 @@ import com.example.asthmahelper.domain.clinical.percentOfBest
 import com.example.asthmahelper.domain.clinical.personalBest
 import com.example.asthmahelper.domain.clinical.variabilityLevel
 import com.example.asthmahelper.domain.clinical.zoneOf
+import com.example.asthmahelper.domain.clinical.zoneOfPercent
+import com.example.asthmahelper.domain.export.buildPeakFlowExportCsv
+import com.example.asthmahelper.domain.export.dailyAggregates
 import com.example.asthmahelper.domain.model.BreathingNorm
+import com.example.asthmahelper.domain.model.DutyMeasurement
 import com.example.asthmahelper.ui.components.AddMeasurementWithDateDialog
 import com.example.asthmahelper.ui.components.SetBreathingNormDialog
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -73,6 +82,7 @@ private enum class Period(val label: String, val days: Int) {
 fun BreathingScreen(navController: androidx.navigation.NavController) {
     val viewModel: BreathingViewModel = hiltViewModel()
     val locale = LocalConfiguration.current.locales[0]
+    val context = LocalContext.current
 
     val measurements by viewModel.measurements.collectAsState()
     val norm by viewModel.breathingNorm.collectAsState()
@@ -80,6 +90,7 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
     var selectedPeriod by remember { mutableStateOf(Period.WEEK) }
     var showNormDialog by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
+    var useBestZones by remember { mutableStateOf(false) }
 
     val filtered = remember(measurements, selectedPeriod) {
         val calendar = Calendar.getInstance().apply {
@@ -90,6 +101,8 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
     }
 
     val variability = remember(filtered) { computeDailyVariability(filtered) }
+
+    val rememberedDailyFlows = remember(filtered) { dailyAggregates(filtered) }
 
     val personalBestValue = remember(measurements) { personalBest(measurements) }
 
@@ -120,6 +133,16 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
         }
 
         item {
+            OutlinedButton(
+                onClick = { exportPeakFlowCsv(context, measurements, norm, personalBestValue) },
+                enabled = measurements.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Экспорт пикфлоуметрии (CSV)")
+            }
+        }
+
+        item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -137,10 +160,20 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
         }
 
         item {
+            FilterChip(
+                selected = useBestZones,
+                onClick = { useBestZones = !useBestZones },
+                enabled = personalBestValue != null,
+                label = { Text("Зоны по личному максимуму") }
+            )
+        }
+
+        item {
             BreathingChart(
                 measurements = filtered.map { it.timestamp to it.value },
                 norm = norm,
                 personalBest = personalBestValue,
+                percentBaseline = if (useBestZones) personalBestValue else null,
                 onNormChanged = { newNorm -> viewModel.setBreathingNorm(newNorm) },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -150,7 +183,14 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
             VariabilityCard(variability = variability)
         }
 
-        if (norm != null) {
+        item {
+            PeakFlowBarsChart(
+                days = rememberedDailyFlows,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        if (norm != null && !useBestZones) {
             item {
                 ZoneLegend(norm = norm!!)
             }
@@ -165,6 +205,11 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
 
         items(measurements.sortedByDescending { it.timestamp }) { measurement ->
             val sharePercent = percentOfBest(measurement.value, personalBestValue)
+            val zone = if (useBestZones) {
+                zoneOfPercent(measurement.value, personalBestValue)
+            } else {
+                zoneOf(measurement.value, norm)
+            }
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -176,7 +221,7 @@ fun BreathingScreen(navController: androidx.navigation.NavController) {
                     Box(
                         modifier = Modifier
                             .size(12.dp)
-                            .background(zoneOf(measurement.value, norm).color, CircleShape)
+                            .background(zone.color, CircleShape)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -405,4 +450,24 @@ private fun ZoneLegendRow(color: Color, text: String) {
         Spacer(modifier = Modifier.width(8.dp))
         Text(text = text, style = MaterialTheme.typography.bodySmall)
     }
+}
+
+/** Формирует CSV-отчёт (замеры + дневная сводка) и открывает системный лист «Поделиться». */
+private fun exportPeakFlowCsv(
+    context: Context,
+    measurements: List<DutyMeasurement>,
+    norm: BreathingNorm?,
+    best: Float?
+) {
+    val csv = buildPeakFlowExportCsv(measurements, norm, best)
+    val file = File(context.cacheDir, "peakflow_export.csv")
+    file.writeText(csv)
+    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/csv"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        putExtra(Intent.EXTRA_SUBJECT, "Пикфлоуметрия")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(Intent.createChooser(shareIntent, "Экспорт пикфлоуметрии"))
 }

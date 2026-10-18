@@ -1,5 +1,6 @@
 package com.example.asthmahelper.domain.clinical
 
+import com.example.asthmahelper.domain.model.AsthmaAttackLog
 import com.example.asthmahelper.domain.model.BreathingNorm
 import com.example.asthmahelper.domain.model.DutyMeasurement
 import java.util.Calendar
@@ -99,6 +100,87 @@ fun percentOfBest(value: Float, best: Float?): Float? {
     if (best == null || best <= 0f) return null
     return value / best * 100f
 }
+
+/**
+ * Зона по проценту от личного максимума (GINA): зелёная — от 80%, жёлтая — 50–80%, красная — ниже 50%.
+ * Если личный максимум неизвестен, считаем зону зелёной.
+ */
+fun zoneOfPercent(value: Float, best: Float?): Zone {
+    if (best == null || best <= 0f) return Zone.GREEN
+    return when {
+        value >= best * 0.8f -> Zone.GREEN
+        value >= best * 0.5f -> Zone.YELLOW
+        else -> Zone.RED
+    }
+}
+
+/** Признак начинающегося обострения: устойчивое падение ПСВ ниже обычного уровня. */
+data class ExacerbationWarning(val consecutiveDays: Int, val worstPercentOfBest: Float, val sinceMillis: Long)
+
+/**
+ * Ищет обострение по GINA: два и более дней подряд максимальный ПСВ дня ниже
+ * [dropPercent]% от личного максимума. Возвращает описание, если такое падение есть.
+ *
+ * Дни без замеров разрывают серию, поэтому «тихий» пропуск не считается ухудшением.
+ */
+fun detectExacerbation(
+    measurements: List<DutyMeasurement>,
+    best: Float?,
+    now: Long = System.currentTimeMillis(),
+    dropPercent: Float = 20f,
+    minConsecutiveDays: Int = 2,
+    windowDays: Int = PERSONAL_BEST_WINDOW_DAYS
+): ExacerbationWarning? {
+    if (best == null || best <= 0f) return null
+    val threshold = best * (1f - dropPercent / 100f)
+    val from = now - windowDays * MILLIS_PER_DAY
+    val byDay = measurements
+        .filter { it.timestamp in from..now }
+        .groupBy { startOfDay(it.timestamp) }
+    if (byDay.isEmpty()) return null
+
+    // Серия должна доходить до сегодня или вчера, иначе это архив, а не текущее состояние.
+    val latestDay = byDay.keys.max()
+    if (startOfDay(now) - latestDay > MILLIS_PER_DAY) return null
+
+    var cursor = latestDay
+    var streak = 0
+    var worstPercent = 100f
+    var since = latestDay
+    while (true) {
+        val dayValues = byDay[cursor] ?: break
+        val dailyMax = dayValues.maxOf { it.value }
+        if (dailyMax >= threshold) break
+        streak++
+        val percent = dailyMax / best * 100f
+        if (percent < worstPercent) worstPercent = percent
+        since = cursor
+        cursor -= MILLIS_PER_DAY
+    }
+
+    return if (streak >= minConsecutiveDays) {
+        ExacerbationWarning(consecutiveDays = streak, worstPercentOfBest = worstPercent, sinceMillis = since)
+    } else {
+        null
+    }
+}
+
+/** Сколько доз спасательного ингалятора отмечено сегодня и за последние 7 дней. */
+data class RescueDoseStats(val today: Int, val thisWeek: Int)
+
+/** Порог частого использования спасательного ингалятора за неделю (GINA). */
+const val HIGH_RESCUE_DOSES_PER_WEEK = 8
+
+fun rescueDoseStats(attacks: List<AsthmaAttackLog>, now: Long = System.currentTimeMillis()): RescueDoseStats {
+    val todayStart = startOfDay(now)
+    val weekStart = todayStart - 6 * MILLIS_PER_DAY
+    val today = attacks.filter { it.timestamp >= todayStart }.sumOf { it.rescueDoses }
+    val week = attacks.filter { it.timestamp >= weekStart }.sumOf { it.rescueDoses }
+    return RescueDoseStats(today = today, thisWeek = week)
+}
+
+/** Частое использование спасательного ингалятора — повод пересмотреть терапию. */
+fun isRescueUseHigh(weekDoses: Int): Boolean = weekDoses >= HIGH_RESCUE_DOSES_PER_WEEK
 
 private fun startOfDay(timestamp: Long): Long = Calendar.getInstance().apply {
     timeInMillis = timestamp
