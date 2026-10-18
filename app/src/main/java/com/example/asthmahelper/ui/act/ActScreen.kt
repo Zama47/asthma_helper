@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -83,7 +84,7 @@ private val ACT_QUESTIONS = listOf(
 )
 
 @Composable
-fun ActScreen() {
+fun ActScreen(onClose: () -> Unit) {
     val viewModel: ActViewModel = hiltViewModel()
     val locale = Locale.forLanguageTag("ru")
     val history by viewModel.history.collectAsState()
@@ -94,82 +95,93 @@ fun ActScreen() {
 
     val allAnswered = selections.all { it != null }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        item {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onClose) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Закрыть")
+            }
             Text(
                 text = "Тест контроля астмы (ACT)",
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
         }
-        item {
-            Text(
-                text = "5 вопросов о последних 4 неделях. Сумма 5–25 баллов: ≥20 — хороший контроль, " +
-                    "16–19 — частичный, ≤15 — контроль отсутствует.",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
 
-        itemsIndexed(ACT_QUESTIONS) { index, question ->
-            QuestionCard(
-                number = index + 1,
-                question = question,
-                selectedOption = selections[index],
-                onSelect = { optionIndex -> selections[index] = optionIndex }
-            )
-        }
-
-        item {
-            Button(
-                onClick = {
-                    val scores = selections.map { 5 - (it ?: 0) }
-                    viewModel.saveResult(scores)
-                    savedScore = scores.sum()
-                    showResultDialog = true
-                    for (i in selections.indices) selections[i] = null
-                },
-                enabled = allAnswered,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Сохранить результат")
-            }
-        }
-
-        if (history.isNotEmpty()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "История тестов", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "5 вопросов о последних 4 неделях. Сумма 5–25 баллов: ≥20 — хороший контроль, " +
+                        "16–19 — частичный, ≤15 — контроль отсутствует.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
-            items(history) { result ->
-                val level = actLevel(result.total)
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .background(level.color, CircleShape)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "${result.total} / 25 · ${level.label}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
+
+            itemsIndexed(ACT_QUESTIONS) { index, question ->
+                QuestionCard(
+                    number = index + 1,
+                    question = question,
+                    selectedOption = selections[index],
+                    onSelect = { optionIndex -> selections[index] = optionIndex }
+                )
+            }
+
+            item {
+                Button(
+                    onClick = {
+                        val scores = selections.map { 5 - (it ?: 0) }
+                        viewModel.saveResult(scores)
+                        savedScore = scores.sum()
+                        showResultDialog = true
+                        for (i in selections.indices) selections[i] = null
+                    },
+                    enabled = allAnswered,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Сохранить результат")
+                }
+            }
+
+            if (history.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = "История тестов", style = MaterialTheme.typography.titleMedium)
+                }
+                items(history) { result ->
+                    val level = actLevel(result.total)
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .background(level.color, CircleShape)
                             )
-                            Text(
-                                text = SimpleDateFormat("dd.MM.yyyy HH:mm", locale).format(Date(result.timestamp)),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        IconButton(onClick = { viewModel.deleteResult(result) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Удалить")
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "${result.total} / 25 · ${level.label}",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = SimpleDateFormat("dd.MM.yyyy HH:mm", locale).format(Date(result.timestamp)),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            IconButton(onClick = { viewModel.deleteResult(result) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Удалить")
+                            }
                         }
                     }
                 }
@@ -184,8 +196,19 @@ fun ActScreen() {
             title = { Text("Результат: $savedScore / 25") },
             text = { Text(text = "Уровень контроля: ${level.label}.") },
             confirmButton = {
+                Button(
+                    onClick = {
+                        showResultDialog = false
+                        // Тест пройден — возвращаемся на главный экран.
+                        onClose()
+                    }
+                ) {
+                    Text("Готово")
+                }
+            },
+            dismissButton = {
                 Button(onClick = { showResultDialog = false }) {
-                    Text("Ок")
+                    Text("Остаться")
                 }
             }
         )

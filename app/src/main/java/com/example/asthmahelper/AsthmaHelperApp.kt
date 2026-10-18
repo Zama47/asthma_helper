@@ -34,7 +34,15 @@ fun AsthmaHelperApp() {
             composable("medications") { MedicationsScreen(navController) }
             composable("calendar") { AsthmaCalendarScreen(navController) }
             composable("weather") { WeatherScreen(navController) }
-            composable("act") { ActScreen() }
+            composable("act") {
+                ActScreen(
+                    onClose = {
+                        if (!navController.popBackStack()) {
+                            navController.navigate("dashboard")
+                        }
+                    }
+                )
+            }
         }
     }
 }

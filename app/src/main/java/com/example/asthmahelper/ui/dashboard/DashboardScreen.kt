@@ -188,7 +188,7 @@ fun DashboardScreen(navController: androidx.navigation.NavController) {
                         )
                     }
                 }
-                OutlinedButton(onClick = { navController.navigate("act") }) {
+                OutlinedButton(onClick = { navController.navigate("act") { launchSingleTop = true } }) {
                     Text(if (act == null) "Пройти" else "Обновить")
                 }
             }
