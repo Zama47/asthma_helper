@@ -19,10 +19,12 @@ import com.example.asthmahelper.util.WeatherSettingsKeys
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
 data class WeatherUiState(
@@ -72,116 +74,130 @@ class WeatherViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val prefs = dataStore.data.first()
-                val savedName = prefs[WeatherSettingsKeys.CITY_NAME]
-                val savedLat = prefs[WeatherSettingsKeys.CITY_LAT]
-                val savedLon = prefs[WeatherSettingsKeys.CITY_LON]
-                val savedCityAvailable =
-                    !forceDeviceLocation && savedName != null && savedLat != null && savedLon != null
-                forceDeviceLocation = false
-
-                var resolvedCityName: String? = null
-
-                if (savedCityAvailable) {
-                    lat = savedLat
-                    lon = savedLon
-                    resolvedCityName = savedName
-                    _uiState.value = _uiState.value.copy(
-                        isManualCity = true,
-                        isUsingRealLocation = false,
-                        locationUnavailable = false
-                    )
-                } else {
-                    _uiState.value = _uiState.value.copy(isManualCity = false)
-                    if (useLocation) {
-                        val geoPoint = if (locationProvider.hasPermission()) {
-                            withTimeoutOrNull(10_000) { locationProvider.getCurrentLocation() }
-                        } else {
-                            null
-                        }
-                        if (geoPoint != null) {
-                            lat = geoPoint.lat
-                            lon = geoPoint.lon
-                            _uiState.value = _uiState.value.copy(
-                                isUsingRealLocation = true,
-                                locationUnavailable = false
-                            )
-                        } else {
-                            // Ни города, ни геолокации — подсказываем выбрать город вручную
-                            _uiState.value = _uiState.value.copy(
-                                isUsingRealLocation = false,
-                                locationUnavailable = true
-                            )
-                        }
-                    } else {
-                        _uiState.value = _uiState.value.copy(isUsingRealLocation = false)
-                    }
+                // Вся загрузка — в IO: внутри есть блокирующие сетевые вызовы
+                // (обратное геокодирование названия города), которых нельзя
+                // делать в главном потоке — иначе NetworkOnMainThreadException
+                // и падение всей загрузки.
+                withContext(Dispatchers.IO) {
+                    resolveLocationAndLoad(useLocation)
                 }
-
-                val forecastResp = try {
-                    api.getForecast(lat, lon)
-                } catch (e: Exception) {
-                    Log.w("WeatherViewModel", "Forecast request failed", e)
-                    null
-                }
-
-                val weather = forecastResp?.let { resp ->
-                    with(resp.current) {
-                        WeatherInfo(
-                            cityName = resolvedCityName ?: cityNameByCoords(lat, lon),
-                            temperature = temperature,
-                            feelsLike = feelsLike,
-                            humidity = humidity,
-                            pressure = pressure.toInt(),
-                            windSpeed = windSpeed,
-                            description = describeWeatherCode(weatherCode)
-                        )
-                    }
-                }
-
-                var air: AirQualityInfo? = null
-                var pollen: PollenInfo? = null
-                try {
-                    val airResp = api.getAirQuality(lat, lon)
-                    air = with(airResp.current) {
-                        AirQualityInfo(
-                            aqi = europeanAqi?.toInt() ?: 0,
-                            pm25 = pm25 ?: 0.0,
-                            pm10 = pm10 ?: 0.0,
-                            o3 = ozone ?: 0.0,
-                            no2 = nitrogenDioxide ?: 0.0
-                        )
-                    }
-                    pollen = buildPollen(airResp)
-                } catch (e: Exception) {
-                    Log.w("WeatherViewModel", "Air quality request failed", e)
-                }
-
-                // Прогноз и воздух независимы: падение одного не скрывает остальное
-                val error = when {
-                    weather == null && air == null ->
-                        "Ошибка загрузки данных. Проверьте подключение к интернету."
-                    weather == null ->
-                        "Прогноз погоды временно недоступен. Остальные данные загружены."
-                    air == null ->
-                        "Данные о качестве воздуха временно недоступны."
-                    else -> null
-                }
-
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    weather = weather,
-                    airQuality = air,
-                    pollen = pollen,
-                    error = error
-                )
             } catch (e: Exception) {
+                Log.w("WeatherViewModel", "Weather load failed", e)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = "Ошибка загрузки данных. Проверьте подключение к интернету."
                 )
             }
         }
+    }
+
+    private suspend fun resolveLocationAndLoad(useLocation: Boolean) {
+        val prefs = dataStore.data.first()
+        val savedName = prefs[WeatherSettingsKeys.CITY_NAME]
+        val savedLat = prefs[WeatherSettingsKeys.CITY_LAT]
+        val savedLon = prefs[WeatherSettingsKeys.CITY_LON]
+        val savedCityAvailable =
+            !forceDeviceLocation && savedName != null && savedLat != null && savedLon != null
+        forceDeviceLocation = false
+
+        var resolvedCityName: String? = null
+
+        if (savedCityAvailable) {
+            lat = savedLat
+            lon = savedLon
+            resolvedCityName = savedName
+            _uiState.value = _uiState.value.copy(
+                isManualCity = true,
+                isUsingRealLocation = false,
+                locationUnavailable = false
+            )
+        } else {
+            _uiState.value = _uiState.value.copy(isManualCity = false)
+            if (useLocation) {
+                val geoPoint = if (locationProvider.hasPermission()) {
+                    withTimeoutOrNull(10_000) { locationProvider.getCurrentLocation() }
+                } else {
+                    null
+                }
+                if (geoPoint != null) {
+                    lat = geoPoint.lat
+                    lon = geoPoint.lon
+                    _uiState.value = _uiState.value.copy(
+                        isUsingRealLocation = true,
+                        locationUnavailable = false
+                    )
+                } else {
+                    // Ни города, ни геолокации — подсказываем выбрать город вручную
+                    _uiState.value = _uiState.value.copy(
+                        isUsingRealLocation = false,
+                        locationUnavailable = true
+                    )
+                }
+            } else {
+                _uiState.value = _uiState.value.copy(isUsingRealLocation = false)
+            }
+        }
+
+        val forecastResp = try {
+            api.getForecast(lat, lon)
+        } catch (e: Exception) {
+            Log.w("WeatherViewModel", "Forecast request failed", e)
+            null
+        }
+
+        val weather = forecastResp?.let { resp ->
+            with(resp.current) {
+                WeatherInfo(
+                    // Название города не должно ломать загрузку погоды.
+                    cityName = resolvedCityName
+                        ?: runCatching { cityNameByCoords(lat, lon) }
+                            .getOrElse { fallbackCityName(lat, lon) },
+                    temperature = temperature,
+                    feelsLike = feelsLike,
+                    humidity = humidity,
+                    pressure = pressure.toInt(),
+                    windSpeed = windSpeed,
+                    description = describeWeatherCode(weatherCode)
+                )
+            }
+        }
+
+        var air: AirQualityInfo? = null
+        var pollen: PollenInfo? = null
+        try {
+            val airResp = api.getAirQuality(lat, lon)
+            air = with(airResp.current) {
+                AirQualityInfo(
+                    aqi = europeanAqi?.toInt() ?: 0,
+                    pm25 = pm25 ?: 0.0,
+                    pm10 = pm10 ?: 0.0,
+                    o3 = ozone ?: 0.0,
+                    no2 = nitrogenDioxide ?: 0.0
+                )
+            }
+            pollen = buildPollen(airResp)
+        } catch (e: Exception) {
+            Log.w("WeatherViewModel", "Air quality request failed", e)
+        }
+
+        // Прогноз и воздух независимы: падение одного не скрывает остальное
+        val error = when {
+            weather == null && air == null ->
+                "Ошибка загрузки данных. Проверьте подключение к интернету."
+            weather == null ->
+                "Прогноз погоды временно недоступен. Остальные данные загружены."
+            air == null ->
+                "Данные о качестве воздуха временно недоступны."
+            else -> null
+        }
+
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            weather = weather,
+            airQuality = air,
+            pollen = pollen,
+            error = error
+        )
     }
 
     /** Сохраняет выбранный город и перезагружает погоду для него. */
