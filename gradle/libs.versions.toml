@@ -36,7 +36,7 @@ datastore = "1.1.1"
 androidxHilt = "1.4.0"
 
 # Navigation
-navigation = "2.8.2"
+navigation = "2.10.2"
 
 # Static analysis
 ktlint = "14.2.0"
