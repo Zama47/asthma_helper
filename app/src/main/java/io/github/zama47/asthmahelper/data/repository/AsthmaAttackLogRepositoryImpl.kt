@@ -1,0 +1,48 @@
+package io.github.zama47.asthmahelper.data.repository
+
+import io.github.zama47.asthmahelper.data.db.dao.AsthmaAttackLogDao
+import io.github.zama47.asthmahelper.data.db.entity.AsthmaAttackLogEntity
+import io.github.zama47.asthmahelper.domain.model.AsthmaAttackLog
+import io.github.zama47.asthmahelper.domain.model.AttackSeverity
+import io.github.zama47.asthmahelper.domain.repository.AsthmaAttackLogRepository
+import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+
+class AsthmaAttackLogRepositoryImpl @Inject constructor(private val dao: AsthmaAttackLogDao) :
+    AsthmaAttackLogRepository {
+
+    override fun getAllAttacks(): Flow<List<AsthmaAttackLog>> = dao.getAllAttacks().map { entities ->
+        entities.map { it.toDomain() }
+    }
+
+    override suspend fun insertAttack(attack: AsthmaAttackLog): Long = dao.insert(attack.toEntity())
+
+    override suspend fun updateAttack(attack: AsthmaAttackLog) {
+        dao.update(attack.toEntity())
+    }
+
+    override suspend fun deleteAttack(attack: AsthmaAttackLog) {
+        dao.delete(attack.toEntity())
+    }
+
+    private fun AsthmaAttackLogEntity.toDomain(): AsthmaAttackLog = AsthmaAttackLog(
+        id = id,
+        timestamp = timestamp,
+        severity = runCatching { AttackSeverity.valueOf(severity) }.getOrDefault(AttackSeverity.LOW),
+        rescueDoses = rescueDoses,
+        triggers = triggers.split(",").map { it.trim() }.filter { it.isNotEmpty() },
+        location = location,
+        notes = notes
+    )
+
+    private fun AsthmaAttackLog.toEntity(): AsthmaAttackLogEntity = AsthmaAttackLogEntity(
+        id = id,
+        timestamp = timestamp,
+        severity = severity.name,
+        rescueDoses = rescueDoses,
+        triggers = triggers.joinToString(","),
+        location = location,
+        notes = notes
+    )
+}

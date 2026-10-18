@@ -6,7 +6,7 @@
 [![Room](https://img.shields.io/badge/Room-2.8.4-003545?style=for-the-badge&logo=sqlite&logoColor=white)](https://developer.android.com/jetpack/androidx/releases/room)
 [![Retrofit](https://img.shields.io/badge/Retrofit-2.11-48B984?style=for-the-badge&logo=square&logoColor=white)](https://square.github.io/retrofit/)
 [![CI](https://github.com/Zama47/asthma_helper/actions/workflows/ci.yml/badge.svg)](https://github.com/Zama47/asthma_helper/actions/workflows/ci.yml)
-[![Pre-release](https://img.shields.io/badge/pre--release-0.2b-FF9800?style=for-the-badge)](https://github.com/Zama47/asthma_helper/releases)
+[![Pre-release](https://img.shields.io/badge/pre--release-0.3-FF9800?style=for-the-badge)](https://github.com/Zama47/asthma_helper/releases)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 <br>
@@ -23,7 +23,7 @@
     и мониторинг качества воздуха — в одном приложении.
     <br />
     <br />
-    <a href="https://github.com/Zama47/asthma_helper/releases"><strong>Скачать APK (Pre-release 0.2b)</strong></a>
+    <a href="https://github.com/Zama47/asthma_helper/releases"><strong>Скачать APK (Pre-release 0.3)</strong></a>
     ·
     <a href="https://github.com/Zama47/asthma_helper/issues"><strong>Сообщить об ошибке</strong></a>
   </p>
@@ -208,7 +208,7 @@ app/src/main/java/com/example/asthmahelper/
 
 ## 🎬 Демонстрация работы
 
-Скриншоты версии **0.2b** (исходники — в папке [`docs/screenshots/`](docs/screenshots)):
+Скриншоты версии **0.3** (исходники — в папке [`docs/screenshots/`](docs/screenshots)):
 
 | Главный экран | Погода: качество воздуха и пыльца | Дыхание: график, зоны и экспорт |
 |:---:|:---:|:---:|

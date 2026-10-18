@@ -28,11 +28,17 @@ jobs:
 
       # Секрет KEYSTORE_BASE64 — release-keystore в base64.
       # Остальные секреты: KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD.
+      # Без секрета сборка пройдёт, но APK останется неподписанным.
       - name: Decode keystore
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "Секрет KEYSTORE_BASE64 не задан — релизная сборка будет неподписанной."
+            exit 0
+          fi
           mkdir -p keystore
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore/release.keystore
+          echo "$KEYSTORE_BASE64" | base64 -d > keystore/release.keystore
           cat > keystore.properties <<EOF
           storeFile=keystore/release.keystore
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}

@@ -15,17 +15,17 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.example.asthmahelper"
+    namespace = "io.github.zama47.asthmahelper"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.asthmahelper"
+        applicationId = "io.github.zama47.asthmahelper"
         minSdk = 24
         targetSdk = 36
-        versionCode = 5
-        versionName = "0.2b"
+        versionCode = 6
+        versionName = "0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
