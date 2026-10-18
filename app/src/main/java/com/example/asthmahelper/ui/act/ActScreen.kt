@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.asthmahelper.domain.clinical.actLevel
+import com.example.asthmahelper.domain.clinical.actScores
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -137,7 +138,7 @@ fun ActScreen(onClose: () -> Unit) {
             item {
                 Button(
                     onClick = {
-                        val scores = selections.map { 5 - (it ?: 0) }
+                        val scores = actScores(selections.map { it ?: 0 })
                         viewModel.saveResult(scores)
                         savedScore = scores.sum()
                         showResultDialog = true

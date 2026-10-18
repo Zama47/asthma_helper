@@ -20,3 +20,12 @@ fun actLevel(total: Int): ActLevel = when {
 
 /** Сумма баллов по ответам (каждый 1–5). Некорректные значения зажимаются в диапазон вопросов. */
 fun actTotal(answers: List<Int>): Int = answers.sumOf { it.coerceIn(1, 5) }
+
+/**
+ * Балл за один ответ ACT. Варианты в интерфейсе идут от худшего к лучшему,
+ * поэтому индекс 0 (худший ответ) — 1 балл, индекс 4 (лучший) — 5 баллов.
+ */
+fun actAnswerScore(optionIndex: Int): Int = optionIndex.coerceIn(0, 4) + 1
+
+/** Переводит выбранные варианты (их индексы 0–4) в баллы 1–5. */
+fun actScores(selectedOptions: List<Int>): List<Int> = selectedOptions.map { actAnswerScore(it) }
