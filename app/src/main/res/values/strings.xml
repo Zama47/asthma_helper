@@ -14,8 +14,8 @@
     <string name="medication_schedule">Расписание лекарств</string>
     <string name="air_quality">Качество воздуха</string>
     <string name="allergy_level">Уровень аллергии</string>
-    <string name="widget_pef_description">Последний замер пикфлоуметрии, зона и приём лекарств</string>
-    <string name="widget_add_measurement">Добавить замер</string>
-    <string name="widget_medications_title">Лекарства сегодня</string>
-    <string name="widget_medications_empty">Нет запланированных приёмов</string>
+    <string name="widget_quick_actions_description">Быстрые действия: приступ, замер ПСВ, приём лекарств</string>
+    <string name="widget_action_attack">Записать приступ</string>
+    <string name="widget_action_add_measurement">Добавить замер</string>
+    <string name="widget_action_medication">Отметить приём лекарства</string>
 </resources>

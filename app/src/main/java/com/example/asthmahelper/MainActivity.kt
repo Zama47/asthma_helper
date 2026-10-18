@@ -9,7 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.asthmahelper.ui.theme.AsthmaHelperTheme
-import com.example.asthmahelper.widget.PefWidgetProvider
+import com.example.asthmahelper.widget.AsthmaWidgetProvider
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         startAddMeasurement = intent.getBooleanExtra(EXTRA_ADD_MEASUREMENT, false)
-        PefWidgetProvider.refresh(this)
+        AsthmaWidgetProvider.refresh(this)
         setContent {
             AsthmaHelperTheme {
                 AsthmaHelperApp(

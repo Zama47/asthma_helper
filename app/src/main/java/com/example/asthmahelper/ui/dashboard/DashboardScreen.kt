@@ -54,7 +54,7 @@ import com.example.asthmahelper.domain.model.PollenLevel
 import com.example.asthmahelper.ui.act.color
 import com.example.asthmahelper.ui.act.label
 import com.example.asthmahelper.ui.components.AddMeasurementDialog
-import com.example.asthmahelper.widget.PefWidgetProvider
+import com.example.asthmahelper.widget.AsthmaWidgetProvider
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -252,7 +252,7 @@ fun DashboardScreen(
                                 onCheckedChange = { checked ->
                                     viewModel.toggleMedication(item, checked)
                                     // Держим галочку на виджете в актуальном состоянии.
-                                    PefWidgetProvider.refresh(context)
+                                    AsthmaWidgetProvider.refresh(context)
                                 }
                             )
                             Column {
@@ -337,7 +337,7 @@ fun DashboardScreen(
                 viewModel.addMeasurement(value, note)
                 showAddMeasurementDialog = false
                 // Сразу обновляем виджет домашнего экрана, не дожидаясь периодического обновления.
-                PefWidgetProvider.refresh(context)
+                AsthmaWidgetProvider.refresh(context)
             }
         )
     }

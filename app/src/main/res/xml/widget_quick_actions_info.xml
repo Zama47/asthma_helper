@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:description="@string/widget_pef_description"
-    android:initialLayout="@layout/widget_pef"
-    android:minHeight="180dp"
-    android:minWidth="220dp"
+    android:description="@string/widget_quick_actions_description"
+    android:initialLayout="@layout/widget_quick_actions"
+    android:minHeight="110dp"
+    android:minWidth="240dp"
     android:resizeMode="horizontal|vertical"
-    android:targetCellHeight="4"
-    android:targetCellWidth="3"
+    android:targetCellHeight="2"
+    android:targetCellWidth="4"
     android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen" />

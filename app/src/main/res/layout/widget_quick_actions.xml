@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <FrameLayout
+        android:id="@+id/widget_btn_attack"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_btn_attack_bg">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/widget_action_attack"
+            android:src="@drawable/ic_widget_attack" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/widget_btn_pef"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_btn_pef_bg">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/widget_action_add_measurement"
+            android:src="@drawable/ic_widget_add" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/widget_btn_medication"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <FrameLayout
+            android:id="@+id/widget_med_bg_pending"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/widget_btn_med_pending_bg" />
+
+        <FrameLayout
+            android:id="@+id/widget_med_bg_taken"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/widget_btn_med_taken_bg"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/widget_med_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/widget_action_medication"
+            android:src="@drawable/ic_widget_med_pending" />
+    </FrameLayout>
+</LinearLayout>
