@@ -4,32 +4,70 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
-    android:gravity="center"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="14dp">
 
-    <TextView
-        android:id="@+id/widget_title"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Пикфлоуметрия"
-        android:textColor="#66000000"
-        android:textSize="12sp" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:contentDescription="@null"
+            android:src="@mipmap/ic_launcher" />
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="Пикфлоуметрия"
+            android:textColor="#FF01579B"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_add"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/widget_add_circle"
+            android:contentDescription="@string/widget_add_measurement"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="#FFFFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="bottom"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/widget_zone_dot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:text="●"
+            android:textColor="#FF9E9E9E"
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/widget_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:includeFontPadding="false"
             android:text="—"
-            android:textColor="#FF4CAF50"
-            android:textSize="40sp"
+            android:textColor="#FF01579B"
+            android:textSize="34sp"
             android:textStyle="bold" />
 
         <TextView
@@ -37,10 +75,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
-            android:layout_marginBottom="4dp"
             android:text="л/мин"
-            android:textColor="#99000000"
-            android:textSize="14sp" />
+            android:textColor="#9901579B"
+            android:textSize="13sp" />
     </LinearLayout>
 
     <TextView
@@ -48,30 +85,38 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Нет данных"
-        android:textColor="#CC000000"
-        android:textSize="14sp" />
+        android:textColor="#CC01579B"
+        android:textSize="12sp" />
 
     <TextView
         android:id="@+id/widget_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#99000000"
-        android:textSize="12sp" />
-
-    <TextView
-        android:id="@+id/widget_hint"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:text="Нажмите, чтобы открыть"
-        android:textColor="#66000000"
+        android:textColor="#9901579B"
         android:textSize="11sp" />
 
-    <Button
-        android:id="@+id/widget_add"
+    <TextView
+        android:id="@+id/widget_meds_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:text="Добавить замер"
-        android:textSize="12sp" />
+        android:layout_marginTop="8dp"
+        android:text="@string/widget_medications_title"
+        android:textColor="#FF01579B"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:id="@+id/widget_meds_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+
+    <TextView
+        android:id="@+id/widget_meds_empty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/widget_medications_empty"
+        android:textColor="#9901579B"
+        android:textSize="11sp"
+        android:visibility="gone" />
 </LinearLayout>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_med_row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingTop="3dp"
+    android:paddingBottom="3dp">
+
+    <TextView
+        android:id="@+id/widget_med_check"
+        android:layout_width="22dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="☐"
+        android:textColor="#FF90A4AE"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/widget_med_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="#FF37474F"
+        android:textSize="13sp" />
+</LinearLayout>

@@ -251,6 +251,8 @@ fun DashboardScreen(
                                 checked = item.taken,
                                 onCheckedChange = { checked ->
                                     viewModel.toggleMedication(item, checked)
+                                    // Держим галочку на виджете в актуальном состоянии.
+                                    PefWidgetProvider.refresh(context)
                                 }
                             )
                             Column {
