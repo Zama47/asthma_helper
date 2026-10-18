@@ -66,4 +66,12 @@
         android:text="Нажмите, чтобы открыть"
         android:textColor="#66000000"
         android:textSize="11sp" />
+
+    <Button
+        android:id="@+id/widget_add"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Добавить замер"
+        android:textSize="12sp" />
 </LinearLayout>

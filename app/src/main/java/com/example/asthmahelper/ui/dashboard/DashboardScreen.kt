@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,28 +37,47 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.asthmahelper.R
+import com.example.asthmahelper.domain.clinical.Zone
 import com.example.asthmahelper.domain.clinical.actLevel
 import com.example.asthmahelper.domain.clinical.isRescueUseHigh
 import com.example.asthmahelper.domain.clinical.percentOfBest
+import com.example.asthmahelper.domain.clinical.zoneOf
+import com.example.asthmahelper.domain.clinical.zoneOfPercent
+import com.example.asthmahelper.domain.model.BreathingNorm
 import com.example.asthmahelper.domain.model.PollenLevel
 import com.example.asthmahelper.ui.act.color
 import com.example.asthmahelper.ui.act.label
 import com.example.asthmahelper.ui.components.AddMeasurementDialog
+import com.example.asthmahelper.widget.PefWidgetProvider
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
-fun DashboardScreen(navController: androidx.navigation.NavController) {
+fun DashboardScreen(
+    navController: androidx.navigation.NavController,
+    startWithAddMeasurement: Boolean = false,
+    onStartAddMeasurementHandled: () -> Unit = {}
+) {
     val viewModel: DashboardViewModel = hiltViewModel()
     val locale = LocalConfiguration.current.locales[0]
+    val context = LocalContext.current
     var showAddMeasurementDialog by remember { mutableStateOf(false) }
+
+    // Виджет может попросить открыть диалог добавления замера сразу после запуска.
+    LaunchedEffect(startWithAddMeasurement) {
+        if (startWithAddMeasurement) {
+            showAddMeasurementDialog = true
+            onStartAddMeasurementHandled()
+        }
+    }
 
     val measurements by viewModel.recentMeasurements.collectAsState()
     val norm by viewModel.breathingNorm.collectAsState()
@@ -287,7 +307,7 @@ fun DashboardScreen(navController: androidx.navigation.NavController) {
                         Box(
                             modifier = Modifier
                                 .size(12.dp)
-                                .background(color(measurement.value, norm), CircleShape)
+                                .background(peakFlowZoneColor(measurement.value, norm, personalBest), CircleShape)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
@@ -314,6 +334,8 @@ fun DashboardScreen(navController: androidx.navigation.NavController) {
             onSave = { value, note ->
                 viewModel.addMeasurement(value, note)
                 showAddMeasurementDialog = false
+                // Сразу обновляем виджет домашнего экрана, не дожидаясь периодического обновления.
+                PefWidgetProvider.refresh(context)
             }
         )
     }
@@ -324,12 +346,13 @@ private fun formatTime(msSinceMidnight: Long): String {
     return String.format(Locale.getDefault(), "%02d:%02d", minutes / 60, minutes % 60)
 }
 
-private fun color(value: Float, norm: com.example.asthmahelper.domain.model.BreathingNorm?): Color {
-    if (norm == null) return Color(0xFF9E9E9E)
-    return if (value < norm.minNormal || value > norm.maxNormal) {
-        Color(0xFFF44336)
-    } else {
-        Color(0xFF4CAF50)
+private fun peakFlowZoneColor(value: Float, norm: BreathingNorm?, best: Float?): Color {
+    if (norm == null && best == null) return Color(0xFF9E9E9E)
+    val zone = if (best != null) zoneOfPercent(value, best) else zoneOf(value, norm)
+    return when (zone) {
+        Zone.GREEN -> Color(0xFF4CAF50)
+        Zone.YELLOW -> Color(0xFFFFC107)
+        Zone.RED -> Color(0xFFF44336)
     }
 }
 

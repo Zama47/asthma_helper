@@ -77,6 +77,7 @@ class PefWidgetProvider : AppWidgetProvider() {
         )
         views.setTextColor(R.id.widget_value, zoneColor(zone))
         views.setOnClickPendingIntent(R.id.widget_root, openAppIntent(context))
+        views.setOnClickPendingIntent(R.id.widget_add, addMeasurementIntent(context))
         return views
     }
 
@@ -88,6 +89,25 @@ class PefWidgetProvider : AppWidgetProvider() {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+    }
+
+    /** Открывает приложение сразу с диалогом добавления замера. */
+    private fun addMeasurementIntent(context: Context): PendingIntent {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            putExtra(MainActivity.EXTRA_ADD_MEASUREMENT, true)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        return PendingIntent.getActivity(
+            context,
+            1,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    override fun onEnabled(context: Context) {
+        // Добавили первый виджет — сразу показываем актуальные данные.
+        refresh(context)
     }
 
     private fun zoneTitle(zone: Zone): String = when (zone) {
