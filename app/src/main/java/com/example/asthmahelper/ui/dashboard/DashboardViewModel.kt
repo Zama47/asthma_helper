@@ -36,7 +36,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -68,37 +68,36 @@ class DashboardViewModel @Inject constructor(
     data class WeatherDashboardData(val airQuality: AirQualityInfo?, val pollen: PollenInfo?)
 
     /** Данные о погоде, качестве воздуха и пыльце из Open-Meteo API. */
-    val weatherData: StateFlow<WeatherDashboardData> = flow {
-        // Город, выбранный на экране погоды, либо Москва по умолчанию
-        val prefs = dataStore.data.first()
-        val lat = prefs[WeatherSettingsKeys.CITY_LAT] ?: defaultLat
-        val lon = prefs[WeatherSettingsKeys.CITY_LON] ?: defaultLon
-
-        try {
-            val air = weatherApi.getAirQuality(lat, lon)
-            val airCurrent = air.current
-
-            val airQuality = AirQualityInfo(
-                aqi = airCurrent.europeanAqi?.toInt() ?: 0,
-                pm25 = airCurrent.pm25 ?: 0.0,
-                pm10 = airCurrent.pm10 ?: 0.0,
-                o3 = airCurrent.ozone ?: 0.0,
-                no2 = airCurrent.nitrogenDioxide ?: 0.0
-            )
-
-            // Пыльца: берём максимум из активных растений
-            val pollen = buildPollen(airCurrent)
-
-            emit(WeatherDashboardData(airQuality = airQuality, pollen = pollen))
-        } catch (_: Exception) {
-            // При ошибке API — эмитим пустые данные, виджеты покажут «Нет данных»
-            emit(WeatherDashboardData(airQuality = null, pollen = null))
+    val weatherData: StateFlow<WeatherDashboardData> = dataStore.data
+        .map { prefs ->
+            (prefs[WeatherSettingsKeys.CITY_LAT] ?: defaultLat) to
+                (prefs[WeatherSettingsKeys.CITY_LON] ?: defaultLon)
         }
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5_000),
+        .distinctUntilChanged()
+        .flatMapLatest { (lat, lon) -> flow { emit(loadDashboardWeather(lat, lon)) } }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            WeatherDashboardData(airQuality = null, pollen = null)
+        )
+
+    /** Воздух и пыльца; при ошибке — пустые данные, виджеты покажут «Нет данных». */
+    private suspend fun loadDashboardWeather(lat: Double, lon: Double): WeatherDashboardData = try {
+        val airCurrent = weatherApi.getAirQuality(lat, lon).current
+
+        val airQuality = AirQualityInfo(
+            aqi = airCurrent.europeanAqi?.toInt() ?: 0,
+            pm25 = airCurrent.pm25 ?: 0.0,
+            pm10 = airCurrent.pm10 ?: 0.0,
+            o3 = airCurrent.ozone ?: 0.0,
+            no2 = airCurrent.nitrogenDioxide ?: 0.0
+        )
+
+        // Пыльца: берём максимум из активных растений
+        WeatherDashboardData(airQuality = airQuality, pollen = buildPollen(airCurrent))
+    } catch (_: Exception) {
         WeatherDashboardData(airQuality = null, pollen = null)
-    )
+    }
 
     /** Последние замеры (для сводки «Последний замер»). */
     val recentMeasurements: StateFlow<List<DutyMeasurement>> =
