@@ -173,29 +173,6 @@
 
 Проект организован по принципам **Clean Architecture**, что обеспечивает тестируемость, гибкость и независимость от фреймворков.
 
-```mermaid
-graph TD
-    subgraph Presentation
-        UI[Compose Screens] --> VM[ViewModels]
-    end
-
-    subgraph Domain
-        VM --> UC[Use Cases]
-        UC --> CL[Clinical Logic<br/>зоны, ACT, обострения]
-        UC --> RI[Repository Interfaces]
-    end
-
-    subgraph Data
-        RI --> RImp[Repository Implementations]
-        RImp --> Local[Local Data Sources<br/>Room + DataStore]
-        RImp --> Remote[Remote Data Sources<br/>Retrofit / Open-Meteo]
-    end
-
-    style Presentation fill:#f9f,stroke:#333,stroke-width:2px
-    style Domain fill:#ccf,stroke:#333,stroke-width:2px
-    style Data fill:#cfc,stroke:#333,stroke-width:2px
-```
-
 ```
 app/src/main/java/com/example/asthmahelper/
 ├── data/        # Room, DataStore, Retrofit, реализации репозиториев
